@@ -8,6 +8,7 @@ extern "C" {
 #include <cstring>
 #include <cstdarg>
 #include "include/debug.h"
+
 static int root_idx = 0;
 static bool has_root = false;
 static std::vector<std::pair<bool, node_t>> node_space;

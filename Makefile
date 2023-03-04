@@ -9,7 +9,10 @@ CFLAGS = -std=c99
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
-OBJS = $(CFILES:.c=.o)
+CXXFILES = $(shell find ./ -name "*.cc")
+LIBS = -lfmt
+OBJS += $(CFILES:.c=.o)
+OBJS += $(CXXFILES:.cc=.o)
 LFILE = $(shell find ./ -name "*.l")
 YFILE = $(shell find ./ -name "*.y")
 LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
@@ -18,7 +21,7 @@ LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
 
 parser: syntax $(filter-out $(LFO),$(OBJS))
-	$(CC) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly
+	$(CXX) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly -lfmt
 
 syntax: lexical syntax-c
 	$(CC) -c $(YFC) -o $(YFO)
