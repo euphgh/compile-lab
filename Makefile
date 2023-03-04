@@ -31,7 +31,7 @@ syntax-c: $(YFILE)
 	$(BISON) -o $(YFC) -d -v $(YFILE)
 
 lmain: lexical main.c
-	gcc main.c $(LFC) -lfl -o lex.out -Werror
+	gcc main.c $(LFC) -lfl -o lex.bin -Werror
 	./lex.bin
 
 -include $(patsubst %.o, %.d, $(OBJS))

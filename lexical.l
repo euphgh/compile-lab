@@ -30,7 +30,6 @@ expt_part [eE][+-]?{digit_seq}
 
 INT {dec_const}|{oct_const}|{hex_digit}
 FLOAT {fra_const}{expt_part}?
-ID [[:alpha:]](([[:alnum:]]|_){0,31})
 SEMI ";"
 COMMA ","
 ASSIGNOP "="
@@ -55,11 +54,36 @@ ELSE "else"
 WHILE "while"
 TYPE "int"|"float"
 RELOP ">"|"<"|">="|"<="|"=="|"!="
+ID [[:alpha:]](([[:alnum:]]|_){0,31})
 %%
 {dec_const} {printf("[%d][dec_const]: %d\n", yylineno, dec_decode(yytext));}
 {oct_const} {printf("[%d][oct_const]: %d\n", yylineno, oct_decode(yytext));}
 {hex_const} {printf("[%d][hex_const]: %d\n", yylineno, hex_decode(yytext));}
 {FLOAT} {printf("[%d][FLOAT]: %f\n", yylineno, atof(yytext));}
+{SEMI} {printf("[%d][SEMI]: %s\n", yylineno, yytext);}
+{COMMA} {printf("[%d][COMMA]: %s\n", yylineno, yytext);}
+{ASSIGNOP} {printf("[%d][ASSIGNOP]: %s\n", yylineno, yytext);}
+{PLUS} {printf("[%d][PLUS]: %s\n", yylineno, yytext);}
+{MINUS} {printf("[%d][MINUS]: %s\n", yylineno, yytext);}
+{STAR} {printf("[%d][STAR]: %s\n", yylineno, yytext);}
+{DIV} {printf("[%d][DIV]: %s\n", yylineno, yytext);}
+{AND} {printf("[%d][AND]: %s\n", yylineno, yytext);}
+{OR} {printf("[%d][OR]: %s\n", yylineno, yytext);}
+{DOT} {printf("[%d][DOT]: %s\n", yylineno, yytext);}
+{NOT} {printf("[%d][NOT]: %s\n", yylineno, yytext);}
+{LP} {printf("[%d][LP]: %s\n", yylineno, yytext);}
+{RP} {printf("[%d][RP]: %s\n", yylineno, yytext);}
+{LB} {printf("[%d][LB]: %s\n", yylineno, yytext);}
+{RB} {printf("[%d][RB]: %s\n", yylineno, yytext);}
+{LC} {printf("[%d][LC]: %s\n", yylineno, yytext);}
+{RC} {printf("[%d][RC]: %s\n", yylineno, yytext);}
+{STRUCT} {printf("[%d][STRUCT]: %s\n", yylineno, yytext);}
+{RETURN} {printf("[%d][RETURN]: %s\n", yylineno, yytext);}
+{IF} {printf("[%d][IF]: %s\n", yylineno, yytext);}
+{ELSE} {printf("[%d][ELSE]: %s\n", yylineno, yytext);}
+{WHILE} {printf("[%d][WHILE]: %s\n", yylineno, yytext);}
+{TYPE} {printf("[%d][TYPE]: %s\n", yylineno, yytext);}
+{RELOP} {printf("[%d][RELOP]: %s\n", yylineno, yytext);}
 {ID} {printf("[%d][ID]: %s\n", yylineno,yytext);}
 \n { }
 %%
