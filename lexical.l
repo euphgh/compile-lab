@@ -1,4 +1,5 @@
 %{
+#include "syntax.tab.h"
 static int dec_decode(char* text) {/*{{{*/
     int dec = 0;
     sscanf(text, "%d", &dec);
@@ -16,6 +17,7 @@ static int hex_decode(char* text) {/*{{{*/
 }/*}}}*/
 %}
 %option yylineno
+%option bison-bridge
 digit [0-9]
 digit_seq {digit}+
 nonzore_digit [1-9]
@@ -56,35 +58,35 @@ TYPE "int"|"float"
 RELOP ">"|"<"|">="|"<="|"=="|"!="
 ID [[:alpha:]](([[:alnum:]]|_){0,31})
 %%
-{dec_const} {printf("[%d][dec_const]: %d\n", yylineno, dec_decode(yytext));}
-{oct_const} {printf("[%d][oct_const]: %d\n", yylineno, oct_decode(yytext));}
-{hex_const} {printf("[%d][hex_const]: %d\n", yylineno, hex_decode(yytext));}
-{FLOAT} {printf("[%d][FLOAT]: %f\n", yylineno, atof(yytext));}
-{SEMI} {printf("[%d][SEMI]: %s\n", yylineno, yytext);}
-{COMMA} {printf("[%d][COMMA]: %s\n", yylineno, yytext);}
-{ASSIGNOP} {printf("[%d][ASSIGNOP]: %s\n", yylineno, yytext);}
-{PLUS} {printf("[%d][PLUS]: %s\n", yylineno, yytext);}
-{MINUS} {printf("[%d][MINUS]: %s\n", yylineno, yytext);}
-{STAR} {printf("[%d][STAR]: %s\n", yylineno, yytext);}
-{DIV} {printf("[%d][DIV]: %s\n", yylineno, yytext);}
-{AND} {printf("[%d][AND]: %s\n", yylineno, yytext);}
-{OR} {printf("[%d][OR]: %s\n", yylineno, yytext);}
-{DOT} {printf("[%d][DOT]: %s\n", yylineno, yytext);}
-{NOT} {printf("[%d][NOT]: %s\n", yylineno, yytext);}
-{LP} {printf("[%d][LP]: %s\n", yylineno, yytext);}
-{RP} {printf("[%d][RP]: %s\n", yylineno, yytext);}
-{LB} {printf("[%d][LB]: %s\n", yylineno, yytext);}
-{RB} {printf("[%d][RB]: %s\n", yylineno, yytext);}
-{LC} {printf("[%d][LC]: %s\n", yylineno, yytext);}
-{RC} {printf("[%d][RC]: %s\n", yylineno, yytext);}
-{STRUCT} {printf("[%d][STRUCT]: %s\n", yylineno, yytext);}
-{RETURN} {printf("[%d][RETURN]: %s\n", yylineno, yytext);}
-{IF} {printf("[%d][IF]: %s\n", yylineno, yytext);}
-{ELSE} {printf("[%d][ELSE]: %s\n", yylineno, yytext);}
-{WHILE} {printf("[%d][WHILE]: %s\n", yylineno, yytext);}
-{TYPE} {printf("[%d][TYPE]: %s\n", yylineno, yytext);}
-{RELOP} {printf("[%d][RELOP]: %s\n", yylineno, yytext);}
-{ID} {printf("[%d][ID]: %s\n", yylineno,yytext);}
+{dec_const} {yylval->cst_int = dec_decode(yytext);  printf("[%d][dec_const]: %d\n", yylineno, dec_decode(yytext)); return INT;}
+{oct_const} {yylval->cst_int = oct_decode(yytext);  printf("[%d][oct_const]: %d\n", yylineno, oct_decode(yytext)); return INT;}
+{hex_const} {yylval->cst_int = hex_decode(yytext);  printf("[%d][hex_const]: %d\n", yylineno, hex_decode(yytext)); return INT;}
+{FLOAT}     {yylval->cst_flt = atof(yytext);        printf("[%d][FLOAT]: %f\n", yylineno, atof(yytext)); return FLOAT;}
+{SEMI}      {printf("[%d][SEMI]: %s\n", yylineno, yytext); return SEMI;}
+{COMMA}     {printf("[%d][COMMA]: %s\n", yylineno, yytext); return COMMA;}
+{ASSIGNOP}  {printf("[%d][ASSIGNOP]: %s\n", yylineno, yytext); return ASSIGNOP;}
+{PLUS}      {printf("[%d][PLUS]: %s\n", yylineno, yytext); return PLUS;}
+{MINUS}     {printf("[%d][MINUS]: %s\n", yylineno, yytext); return MINUS;}
+{STAR}      {printf("[%d][STAR]: %s\n", yylineno, yytext); return STAR;}
+{DIV}       {printf("[%d][DIV]: %s\n", yylineno, yytext); return DIV;}
+{AND}       {printf("[%d][AND]: %s\n", yylineno, yytext); return AND;}
+{OR}        {printf("[%d][OR]: %s\n", yylineno, yytext); return OR;}
+{DOT}       {printf("[%d][DOT]: %s\n", yylineno, yytext); return DOT;}
+{NOT}       {printf("[%d][NOT]: %s\n", yylineno, yytext); return NOT;}
+{LP}        {printf("[%d][LP]: %s\n", yylineno, yytext); return LP;}
+{RP}        {printf("[%d][RP]: %s\n", yylineno, yytext); return RP;}
+{LB}        {printf("[%d][LB]: %s\n", yylineno, yytext); return LB;}
+{RB}        {printf("[%d][RB]: %s\n", yylineno, yytext); return RB;}
+{LC}        {printf("[%d][LC]: %s\n", yylineno, yytext); return LC;}
+{RC}        {printf("[%d][RC]: %s\n", yylineno, yytext); return RC;}
+{STRUCT}    {printf("[%d][STRUCT]: %s\n", yylineno, yytext); return STRUCT;}
+{RETURN}    {printf("[%d][RETURN]: %s\n", yylineno, yytext); return RETURN;}
+{IF}        {printf("[%d][IF]: %s\n", yylineno, yytext); return IF;}
+{ELSE}      {printf("[%d][ELSE]: %s\n", yylineno, yytext); return ELSE;}
+{WHILE}     {printf("[%d][WHILE]: %s\n", yylineno, yytext); return WHILE;}
+{TYPE}      {printf("[%d][TYPE]: %s\n", yylineno, yytext); return TYPE;}
+{RELOP}     {printf("[%d][RELOP]: %s\n", yylineno, yytext); return RELOP;}
+{ID}        {printf("[%d][ID]: %s\n", yylineno,yytext); yylval->literals = strdup(yytext); return ID;}
 \n { }
 %%
 

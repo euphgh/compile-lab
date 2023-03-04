@@ -1,13 +1,14 @@
 #include <stdio.h>
-extern int yylex (void);
-extern FILE *yyin, *yyout ;
-int main(int argc, char** argv) {
-    if (argc > 1) {
-        if (!(yyin = fopen(argv[1], "r"))) {
-            perror(argv[1]);
-            return 1;
-        }
+#include "syntax.tab.h"
+extern void yyrestart ( FILE *input_file  );
+int main(int argc, char** argv){
+    if (argc <= 1) return 1;
+    FILE* f = fopen(argv[1], "r");
+    if (!f) {
+        perror(argv[1]);
+        return 1;
     }
-    yylex();
+    yyrestart(f);
+    yyparse();
     return 0;
 }
