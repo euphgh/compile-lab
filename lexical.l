@@ -1,5 +1,6 @@
 %{
 #include "syntax.tab.h"
+#include "include/AST.h"
 static int dec_decode(char* text) {/*{{{*/
     int dec = 0;
     sscanf(text, "%d", &dec);

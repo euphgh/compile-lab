@@ -1,14 +1,14 @@
 %{
 #include "lex.yy.c"
+#include "include/debug.h"
+#include "include/AST.h"
 %}
 %pure_parser
 %union {
-    int cst_int;
-    float cst_flt;
-    char* literals;
+    int node_idx;
 }
-%token <cst_int>    INT
-%token <cst_flt>    FLOAT
+%token INT
+%token FLOAT
 %token SEMI  
 %token COMMA  
 %token ASSIGNOP  
@@ -31,23 +31,25 @@
 %token IF  
 %token ELSE  
 %token WHILE  
-%token <literals>   TYPE  
-%token <literals>   RELOP  
-%token <literals>   ID
+%token TYPE  
+%token RELOP  
+%token ID
 %%
+int new_leaf(synt_t synt_sym, value_t attrib);
+int new_node(synt_t synt_sym, int cld_nr, ...);
+void set_root(int node_idx);
 /* High-level Definitions {{{*/
-Program: /* empty */ 
-       ExtDefList
+Program: ExtDefList                             {new_node(Program, 1, $1)}
        ;
-ExtDefList: /* empty */ 
-          | ExtDef ExtDefList
+ExtDefList: /* empty */                         {new_node(ExtDefList, 1, new_leaf(empty, 0))}
+          | ExtDef ExtDefList                   {new_node(ExtDefList, 2, $1, $2)}
           ;
-ExtDef: Specifier ExtDecList SEMI
-      | Specifier SEMI
-      | Specifier FunDec CompSt
+ExtDef: Specifier ExtDecList SEMI               {new_node(ExtDef, 3, $1, $2, $3)}
+      | Specifier SEMI                          {new_node(ExtDef, 2, $1, $2)}
+      | Specifier FunDec CompSt                 {new_node(ExtDef, 3, $1, $2, $3)}
       ;
-ExtDecList: VarDec
-          | VarDec COMMA ExtDecList
+ExtDecList: VarDec                              {new_node(ExtDecList, 1, $1)}
+          | VarDec COMMA ExtDecList             {new_node(ExtDecList, 3, $1, $2, $3)}
           ;
 /*}}}*/
 /* Specifiers {{{*/
