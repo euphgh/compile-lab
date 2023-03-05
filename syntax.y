@@ -10,17 +10,17 @@
 %token <node_idx> T_FLOAT
 %token <node_idx> T_SEMI
 %token <node_idx> T_COMMA
-%token <node_idx> T_ASSIGNOP
-%token <node_idx> T_PLUS
-%token <node_idx> T_MINUS
-%token <node_idx> T_STAR
-%token <node_idx> T_DIV
-%token <node_idx> T_AND
-%token <node_idx> T_OR
+%right <node_idx> T_ASSIGNOP
+
+%left  <node_idx> T_OR
+%left  <node_idx> T_AND
+%token <node_idx> T_RELOP  
+%left  <node_idx> T_PLUS T_MINUS
+%left  <node_idx> T_STAR T_DIV
+%precedence <node_idx> T_NOT
+%left  <node_idx> T_LP T_RP
+
 %token <node_idx> T_DOT
-%token <node_idx> T_NOT
-%token <node_idx> T_LP
-%token <node_idx> T_RP
 %token <node_idx> T_LB
 %token <node_idx> T_RB
 %token <node_idx> T_LC
@@ -28,10 +28,10 @@
 %token <node_idx> T_STRUCT
 %token <node_idx> T_RETURN
 %token <node_idx> T_IF  
-%token <node_idx> T_ELSE  
+%nonassoc <node_idx> LOWER_THAN_ELSE 
+%nonassoc <node_idx> T_ELSE
 %token <node_idx> T_WHILE  
 %token <node_idx> T_TYPE  
-%token <node_idx> T_RELOP  
 %token <node_idx> T_ID
 
 %type <node_idx> Program ExtDefList ExtDef ExtDecList
@@ -91,7 +91,7 @@ StmtList: /* empty */                           {value_t e = {.cnt_int=0,}; $$ =
 Stmt: Exp T_SEMI                                {$$ = new_node(Stmt, 2, $1, $2);}
     | CompSt                                    {$$ = new_node(Stmt, 1, $1);}
     | T_RETURN Exp T_SEMI                       {$$ = new_node(Stmt, 3, $1, $2, $3);}
-    | T_IF T_LP Exp T_RP Stmt                   {$$ = new_node(Stmt, 4, $1, $2, $3, $4);}
+    | T_IF T_LP Exp T_RP Stmt %prec LOWER_THAN_ELSE     {$$ = new_node(Stmt, 4, $1, $2, $3, $4);}
     | T_IF T_LP Exp T_RP Stmt T_ELSE Stmt       {$$ = new_node(Stmt, 7, $1, $2, $3, $4, $5, $6, $7);}
     | T_WHILE T_LP Exp T_RP Stmt                {$$ = new_node(Stmt, 5, $1, $2, $3, $4, $5);}
     ;
