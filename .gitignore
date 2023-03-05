@@ -3,3 +3,5 @@ lex.yy.c
 syntax.tab.c
 syntax.tab.h
 /**/*.o
+/**/*.output
+parser
