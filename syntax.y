@@ -14,15 +14,13 @@
 
 %left  <node_idx> T_OR
 %left  <node_idx> T_AND
-%token <node_idx> T_RELOP  
+%nonassoc <node_idx> T_RELOP  
 %left  <node_idx> T_PLUS T_MINUS
 %left  <node_idx> T_STAR T_DIV
-%precedence <node_idx> T_NOT
 %left  <node_idx> T_LP T_RP
+%right <node_idx> T_NOT
+%left <node_idx> T_DOT T_LB T_RB
 
-%token <node_idx> T_DOT
-%token <node_idx> T_LB
-%token <node_idx> T_RB
 %token <node_idx> T_LC
 %token <node_idx> T_RC
 %token <node_idx> T_STRUCT
