@@ -34,6 +34,9 @@
 #define ANSI_BG_WHITE   "\33[1;47m"
 #define ANSI_NONE       "\33[0m"
 
+#define ASSERT_GDB 1
+
+
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
 #define _Log(...) \
@@ -48,7 +51,7 @@
       if (!(cond)) { \
           fflush(stdout); \
           fprintf(stderr, ANSI_FMT(format, ANSI_FG_RED) "\n", ##  __VA_ARGS__); \
-          assert(cond); \
+          IFDEF(ASSERT_GDB, raise(SIGTRAP), assert(cond)); \
     } \
   } while (0)
 

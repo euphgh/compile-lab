@@ -5,12 +5,12 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-CFLAGS = -std=c99
+CFLAGS = -std=gnu11 -g
+CXXFLAGS = -std=gnu++11 -g
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
 CXXFILES = $(shell find ./ -name "*.cc")
-LIBS = -lfmt
 OBJS += $(CFILES:.c=.o)
 OBJS += $(CXXFILES:.cc=.o)
 LFILE = $(shell find ./ -name "*.l")
@@ -19,12 +19,13 @@ LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
 YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
+BINARY = ./parser
 
-parser: syntax $(filter-out $(LFO),$(OBJS))
+$(BINARY): syntax $(filter-out $(LFO),$(OBJS))
 	$(CXX) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly -lfmt
 
 syntax: lexical syntax-c
-	$(CC) -c $(YFC) -o $(YFO)
+	$(CC) -c -g $(YFC) -o $(YFO)
 
 lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
@@ -36,8 +37,12 @@ syntax-c: $(YFILE)
 
 # 定义的一些伪目标
 .PHONY: clean test
-test:
-	./parser ../Test/test1.cmm
+ARGS = ../Test/test3.cmm
+EXEC_CL = $(BINARY) $(ARGS)
+gdb: $(BINARY)
+	gdb -s $(BINARY) --args $(EXEC_CL)
+test: $(BINARY)
+	$(EXEC_CL)
 clean:
 	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)

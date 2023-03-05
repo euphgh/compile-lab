@@ -1,6 +1,9 @@
-#include <stdio.h>
-#include "syntax.tab.h"
-extern void yyrestart ( FILE *input_file  );
+#include <cstdio>
+extern "C" {
+    void yyrestart (FILE *input_file);
+    int yyparse (void);
+#include "include/AST.h"
+}
 int main(int argc, char** argv){
     if (argc <= 1) return 1;
     FILE* f = fopen(argv[1], "r");
@@ -10,5 +13,6 @@ int main(int argc, char** argv){
     }
     yyrestart(f);
     yyparse();
+    print_from_root();
     return 0;
 }

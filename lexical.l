@@ -1,6 +1,7 @@
 %{
 #include "syntax.tab.h"
 #include "include/AST.h"
+#include "include/debug.h"
 static int dec_v(char* text) {/*{{{*/
     int dec = 0;
     sscanf(text, "%d", &dec);
@@ -59,35 +60,35 @@ TYPE "int"|"float"
 RELOP ">"|"<"|">="|"<="|"=="|"!="
 ID [[:alpha:]](([[:alnum:]]|_){0,31})
 %%
-{dec_const} {value_t t = { .cnt_int = dec_v(yytext), }; yylval->node_idx = new_leaf(T_INT,t);       printf("[%d][dec_INT]: %d\n", yylineno, dec_v(yytext)); return INT;}
-{oct_const} {value_t t = { .cnt_int = oct_v(yytext), }; yylval->node_idx = new_leaf(T_INT,t);       printf("[%d][oct_INT]: %d\n", yylineno, oct_v(yytext)); return INT;}
-{hex_const} {value_t t = { .cnt_int = hex_v(yytext), }; yylval->node_idx = new_leaf(T_INT,t);       printf("[%d][hex_INT]: %d\n", yylineno, hex_v(yytext)); return INT;}
-{FLOAT}     {value_t t = { .cnt_flt = atof(yytext), };  yylval->node_idx = new_leaf(T_FLOAT,t);     printf("[%d][FLOAT]: %f\n", yylineno, atof(yytext)); return FLOAT;}
-{SEMI}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_SEMI,t);      printf("[%d][SEMI]: %s\n", yylineno, yytext); return SEMI;}
-{COMMA}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_COMMA,t);     printf("[%d][COMMA]: %s\n", yylineno, yytext); return COMMA;}
-{ASSIGNOP}  {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_ASSIGNOP,t);  printf("[%d][ASSIGNOP]: %s\n", yylineno, yytext); return ASSIGNOP;}
-{PLUS}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_PLUS,t);      printf("[%d][PLUS]: %s\n", yylineno, yytext); return PLUS;}
-{MINUS}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_MINUS,t);     printf("[%d][MINUS]: %s\n", yylineno, yytext); return MINUS;}
-{STAR}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_STAR,t);      printf("[%d][STAR]: %s\n", yylineno, yytext); return STAR;}
-{DIV}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_DIV,t);       printf("[%d][DIV]: %s\n", yylineno, yytext); return DIV;}
-{AND}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_AND,t);       printf("[%d][AND]: %s\n", yylineno, yytext); return AND;}
-{OR}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_OR,t);        printf("[%d][OR]: %s\n", yylineno, yytext); return OR;}
-{DOT}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_DOT,t);       printf("[%d][DOT]: %s\n", yylineno, yytext); return DOT;}
-{NOT}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_NOT,t);       printf("[%d][NOT]: %s\n", yylineno, yytext); return NOT;}
-{LP}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_LP,t);        printf("[%d][LP]: %s\n", yylineno, yytext); return LP;}
-{RP}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_RP,t);        printf("[%d][RP]: %s\n", yylineno, yytext); return RP;}
-{LB}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_LB,t);        printf("[%d][LB]: %s\n", yylineno, yytext); return LB;}
-{RB}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_RB,t);        printf("[%d][RB]: %s\n", yylineno, yytext); return RB;}
-{LC}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_LC,t);        printf("[%d][LC]: %s\n", yylineno, yytext); return LC;}
-{RC}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_RC,t);        printf("[%d][RC]: %s\n", yylineno, yytext); return RC;}
-{STRUCT}    {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_STRUCT,t);    printf("[%d][STRUCT]: %s\n", yylineno, yytext); return STRUCT;}
-{RETURN}    {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_RETURN,t);    printf("[%d][RETURN]: %s\n", yylineno, yytext); return RETURN;}
-{IF}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_IF,t);        printf("[%d][IF]: %s\n", yylineno, yytext); return IF;}
-{ELSE}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_ELSE,t);      printf("[%d][ELSE]: %s\n", yylineno, yytext); return ELSE;}
-{WHILE}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_WHILE,t);     printf("[%d][WHILE]: %s\n", yylineno, yytext); return WHILE;}
-{TYPE}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_TYPE,t);      printf("[%d][TYPE]: %s\n", yylineno, yytext); return TYPE;}
-{RELOP}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(T_RELOP,t);     printf("[%d][RELOP]: %s\n", yylineno, yytext); return RELOP;}
-{ID}        {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(T_ID,t);        printf("[%d][ID]: %s\n", yylineno,yytext);  return ID;}
+{dec_const} {value_t t = { .cnt_int = dec_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][dec_INT]: %d", yylineno, dec_v(yytext)); return T_INT;}
+{oct_const} {value_t t = { .cnt_int = oct_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][oct_INT]: %d", yylineno, oct_v(yytext)); return T_INT;}
+{hex_const} {value_t t = { .cnt_int = hex_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][hex_INT]: %d", yylineno, hex_v(yytext)); return T_INT;}
+{FLOAT}     {value_t t = { .cnt_flt = atof(yytext), };  yylval->node_idx = new_leaf(FLOAT,t);     Log("[%d][FLOAT]: %f", yylineno, atof(yytext)); return T_FLOAT;}
+{SEMI}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(SEMI,t);      Log("[%d][SEMI]: %s", yylineno, yytext); return T_SEMI;}
+{COMMA}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(COMMA,t);     Log("[%d][COMMA]: %s", yylineno, yytext); return T_COMMA;}
+{ASSIGNOP}  {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(ASSIGNOP,t);  Log("[%d][ASSIGNOP]: %s", yylineno, yytext); return T_ASSIGNOP;}
+{PLUS}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(PLUS,t);      Log("[%d][PLUS]: %s", yylineno, yytext); return T_PLUS;}
+{MINUS}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(MINUS,t);     Log("[%d][MINUS]: %s", yylineno, yytext); return T_MINUS;}
+{STAR}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(STAR,t);      Log("[%d][STAR]: %s", yylineno, yytext); return T_STAR;}
+{DIV}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(DIV,t);       Log("[%d][DIV]: %s", yylineno, yytext); return T_DIV;}
+{AND}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(AND,t);       Log("[%d][AND]: %s", yylineno, yytext); return T_AND;}
+{OR}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(OR,t);        Log("[%d][OR]: %s", yylineno, yytext); return T_OR;}
+{DOT}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(DOT,t);       Log("[%d][DOT]: %s", yylineno, yytext); return T_DOT;}
+{NOT}       {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(NOT,t);       Log("[%d][NOT]: %s", yylineno, yytext); return T_NOT;}
+{LP}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(LP,t);        Log("[%d][LP]: %s", yylineno, yytext); return T_LP;}
+{RP}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RP,t);        Log("[%d][RP]: %s", yylineno, yytext); return T_RP;}
+{LB}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(LB,t);        Log("[%d][LB]: %s", yylineno, yytext); return T_LB;}
+{RB}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RB,t);        Log("[%d][RB]: %s", yylineno, yytext); return T_RB;}
+{LC}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(LC,t);        Log("[%d][LC]: %s", yylineno, yytext); return T_LC;}
+{RC}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RC,t);        Log("[%d][RC]: %s", yylineno, yytext); return T_RC;}
+{STRUCT}    {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(STRUCT,t);    Log("[%d][STRUCT]: %s", yylineno, yytext); return T_STRUCT;}
+{RETURN}    {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RETURN,t);    Log("[%d][RETURN]: %s", yylineno, yytext); return T_RETURN;}
+{IF}        {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(IF,t);        Log("[%d][IF]: %s", yylineno, yytext); return T_IF;}
+{ELSE}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(ELSE,t);      Log("[%d][ELSE]: %s", yylineno, yytext); return T_ELSE;}
+{WHILE}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(WHILE,t);     Log("[%d][WHILE]: %s", yylineno, yytext); return T_WHILE;}
+{TYPE}      {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(TYPE,t);      Log("[%d][TYPE]: %s", yylineno, yytext); return T_TYPE;}
+{RELOP}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RELOP,t);     Log("[%d][RELOP]: %s", yylineno, yytext); return T_RELOP;}
+{ID}        {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(ID,t);        Log("[%d][ID]: %s", yylineno,yytext);  return T_ID;}
 \n { }
 %%
 
