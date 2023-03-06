@@ -19,12 +19,14 @@ static int hex_v(char* text) {/*{{{*/
     sscanf(text, "%x", &hex);
     return hex;
 }/*}}}*/
+static void remove_blk_cmt();
 static int yycolumn = 1;
 #define YY_USER_ACTION \
     yylloc->first_line = yylloc->last_line = yylineno; \
     yylloc->first_column = yycolumn; \
     yylloc->last_column = yycolumn + yyleng - 1; \
     yycolumn += yyleng;
+static bool in_blk_cmt = false;
 %}
 %option yylineno
 %option bison-bridge bison-locations
@@ -97,9 +99,21 @@ ID [[:alpha:]](([[:alnum:]]|_){0,31})
 {TYPE}      {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(TYPE,t);      Log("[%d][TYPE]: %s", yylineno, yytext); return T_TYPE;}
 {RELOP}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RELOP,t);     Log("[%d][RELOP]: %s", yylineno, yytext); return T_RELOP;}
 {ID}        {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(ID,t);        Log("[%d][ID]: %s", yylineno,yytext);  return T_ID;}
+"//" {Log ("[%d][line  cmt]: %s", yylineno,yytext); char c = input(); while (c != '\n') c = input(); }
+"/*" {Log ("[%d][block cmt]: %s", yylineno,yytext); remove_blk_cmt();}
 \n  { yycolumn = 1;}
 \t+ { }
 [[:space:]]+ {}
 .           {fprintf(stderr, "Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext); has_lexical_error = true;}
 %%
-
+static void remove_blk_cmt(){
+    char first='\0', second = '\0';
+    bool is_blk_end = false;
+    bool is_eof = false;
+    do {
+        first = second;
+        second = input();
+        is_eof = second==0;
+        is_blk_end = (first=='*') && (second=='/');
+    } while(!is_blk_end && !is_eof);
+}

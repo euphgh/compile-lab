@@ -15,10 +15,8 @@ void yyerror (YYLTYPE *locp, char const *msg){
 %union {
     int node_idx;
 }
-%token <node_idx> T_INT
-%token <node_idx> T_FLOAT
-%token <node_idx> T_SEMI
-%token <node_idx> T_COMMA
+%token <node_idx> T_INT T_FLOAT
+%token <node_idx> T_SEMI T_COMMA
 %right <node_idx> T_ASSIGNOP
 
 %left  <node_idx> T_OR
@@ -42,13 +40,14 @@ void yyerror (YYLTYPE *locp, char const *msg){
 %token <node_idx> T_ID
 %token <node_idx> T_empty /* only use for compile */
 
+/*{{{*/
 %type <node_idx> Program ExtDefList ExtDef ExtDecList
 %type <node_idx> Specifier StructSpecifier OptTag Tag
 %type <node_idx> VarDec FunDec VarList ParamDec
 %type <node_idx> DecList Def DefList Dec
 %type <node_idx> CompSt StmtList Stmt
 %type <node_idx> Exp Args
-
+/*}}}*/
 %%
 /* High-level Definitions {{{*/
 Program: ExtDefList                             {$$ = new_node(Program, 1, $1); set_root($$);}

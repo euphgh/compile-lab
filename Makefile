@@ -38,7 +38,7 @@ syntax-c: $(YFILE)
 # 定义的一些伪目标
 .PHONY: clean test
 NUM ?= 1
-ARGS = ../Test/test$(NUM).cmm
+ARGS = ../Test/optional/test$(NUM).cmm
 EXEC_CL = $(BINARY) $(ARGS)
 gdb: $(BINARY)
 	gdb -s $(BINARY) --args $(EXEC_CL)
