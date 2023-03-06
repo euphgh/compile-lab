@@ -1,8 +1,16 @@
 %{
 #include "lex.yy.c"
 #include "include/AST.h"
+extern bool has_syntax_error;
+void yyerror (YYLTYPE *locp, char const *msg){
+    fprintf (stderr,  "Error type B at Line %d: %s\n", locp->first_line, msg);
+    has_syntax_error = true;
+}
 %}
-%define api.pure
+%locations 
+%define api.pure full
+%define parse.error custom
+%define parse.lac full
 %union {
     int node_idx;
 }
@@ -92,6 +100,7 @@ Stmt: Exp T_SEMI                                {$$ = new_node(Stmt, 2, $1, $2);
     | T_IF T_LP Exp T_RP Stmt %prec LOWER_THAN_ELSE     {$$ = new_node(Stmt, 4, $1, $2, $3, $4);}
     | T_IF T_LP Exp T_RP Stmt T_ELSE Stmt       {$$ = new_node(Stmt, 7, $1, $2, $3, $4, $5, $6, $7);}
     | T_WHILE T_LP Exp T_RP Stmt                {$$ = new_node(Stmt, 5, $1, $2, $3, $4, $5);}
+    | error T_SEMI                              {$$ = new_node(Stmt, 1, $2);}                    
     ;
 /* }}} */
 /* Local Definitions {{{*/
@@ -132,3 +141,29 @@ Args: Exp T_COMMA Args                          {$$ = new_node(Args, 3, $1, $2, 
     ;
 /* }}} */
 %%
+static int yyreport_syntax_error (const yypcontext_t *ctx)
+{
+  int res = 0;
+  char emsg_buf[128];
+  char* p = emsg_buf;
+  // Report the tokens expected at this point.
+  {
+    enum { TOKENMAX = 5 };
+    yysymbol_kind_t expected[TOKENMAX];
+    int n = yypcontext_expected_tokens (ctx, expected, TOKENMAX);
+    // Forward errors to yyparse.
+    if (n < 0)  res = n;
+    else
+      for (int i = 0; i < n; ++i)
+        p += sprintf (p, "%s %s",
+                 i == 0 ? "expected" : " or", yysymbol_name (expected[i]));
+  }
+  // Report the unexpected token.
+  {
+    yysymbol_kind_t lookahead = yypcontext_token (ctx);
+    if (lookahead != YYSYMBOL_YYEMPTY)
+        p += sprintf (p, "syntax error before %s", yysymbol_name (lookahead));
+  }
+  yyerror(yypcontext_location (ctx), emsg_buf);
+  return res;
+}

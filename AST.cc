@@ -123,4 +123,3 @@ static void print_from(int idx, int level){/*{{{*/
 void print_from_root(){/*{{{*/
     print_from(root_idx,0);
 }/*}}}*/
-

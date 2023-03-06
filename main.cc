@@ -2,6 +2,8 @@
 extern "C" {
     void yyrestart (FILE *input_file);
     int yyparse (void);
+    bool has_lexical_error;
+    bool has_syntax_error;
 #include "include/AST.h"
 }
 int main(int argc, char** argv){
@@ -11,8 +13,12 @@ int main(int argc, char** argv){
         perror(argv[1]);
         return 1;
     }
+    has_syntax_error = false;
+    has_lexical_error = false;
     yyrestart(f);
     yyparse();
-    print_from_root();
+
+    if (!has_lexical_error && !has_syntax_error) 
+        print_from_root();
     return 0;
 }

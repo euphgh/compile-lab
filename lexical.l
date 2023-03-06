@@ -2,6 +2,8 @@
 #include "syntax.tab.h"
 #include "include/AST.h"
 #include "include/debug.h"
+#include <stdbool.h>
+extern bool has_lexical_error;
 static int dec_v(char* text) {/*{{{*/
     int dec = 0;
     sscanf(text, "%d", &dec);
@@ -17,9 +19,15 @@ static int hex_v(char* text) {/*{{{*/
     sscanf(text, "%x", &hex);
     return hex;
 }/*}}}*/
+static int yycolumn = 1;
+#define YY_USER_ACTION \
+    yylloc->first_line = yylloc->last_line = yylineno; \
+    yylloc->first_column = yycolumn; \
+    yylloc->last_column = yycolumn + yyleng - 1; \
+    yycolumn += yyleng;
 %}
 %option yylineno
-%option bison-bridge
+%option bison-bridge bison-locations
 digit [0-9]
 digit_seq {digit}+
 nonzore_digit [1-9]
@@ -60,9 +68,9 @@ TYPE "int"|"float"
 RELOP ">"|"<"|">="|"<="|"=="|"!="
 ID [[:alpha:]](([[:alnum:]]|_){0,31})
 %%
-{dec_const} {value_t t = { .cnt_int = dec_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][dec_INT]: %d", yylineno, dec_v(yytext)); return T_INT;}
-{oct_const} {value_t t = { .cnt_int = oct_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][oct_INT]: %d", yylineno, oct_v(yytext)); return T_INT;}
-{hex_const} {value_t t = { .cnt_int = hex_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][hex_INT]: %d", yylineno, hex_v(yytext)); return T_INT;}
+{dec_const} {value_t t = { .cnt_int = dec_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][INT_dec]: %d", yylineno, dec_v(yytext)); return T_INT;}
+{oct_const} {value_t t = { .cnt_int = oct_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][INT_oct]: %d", yylineno, oct_v(yytext)); return T_INT;}
+{hex_const} {value_t t = { .cnt_int = hex_v(yytext), }; yylval->node_idx = new_leaf(INT,t);       Log("[%d][INT_hex]: %d", yylineno, hex_v(yytext)); return T_INT;}
 {FLOAT}     {value_t t = { .cnt_flt = atof(yytext), };  yylval->node_idx = new_leaf(FLOAT,t);     Log("[%d][FLOAT]: %f", yylineno, atof(yytext)); return T_FLOAT;}
 {SEMI}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(SEMI,t);      Log("[%d][SEMI]: %s", yylineno, yytext); return T_SEMI;}
 {COMMA}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(COMMA,t);     Log("[%d][COMMA]: %s", yylineno, yytext); return T_COMMA;}
@@ -89,6 +97,9 @@ ID [[:alpha:]](([[:alnum:]]|_){0,31})
 {TYPE}      {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(TYPE,t);      Log("[%d][TYPE]: %s", yylineno, yytext); return T_TYPE;}
 {RELOP}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RELOP,t);     Log("[%d][RELOP]: %s", yylineno, yytext); return T_RELOP;}
 {ID}        {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(ID,t);        Log("[%d][ID]: %s", yylineno,yytext);  return T_ID;}
-\n { }
+\n  { yycolumn = 1;}
+\t+ { }
+[[:space:]]+ {}
+.           {fprintf(stderr, "Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext); has_lexical_error = true;}
 %%
 
