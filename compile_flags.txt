@@ -1,2 +1,0 @@
--std=gnu++11
--DHELLO=1

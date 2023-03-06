@@ -1,6 +1,7 @@
 %{
 #include "lex.yy.c"
 #include "include/AST.h"
+#include "include/macro.h"
 extern bool has_syntax_error;
 void yyerror (YYLTYPE *locp, char const *msg){
     fprintf (stderr,  "Error type B at Line %d: %s\n", locp->first_line, msg);
@@ -39,6 +40,7 @@ void yyerror (YYLTYPE *locp, char const *msg){
 %token <node_idx> T_WHILE  
 %token <node_idx> T_TYPE  
 %token <node_idx> T_ID
+%token <node_idx> T_empty /* only use for compile */
 
 %type <node_idx> Program ExtDefList ExtDef ExtDecList
 %type <node_idx> Specifier StructSpecifier OptTag Tag
@@ -141,8 +143,21 @@ Args: Exp T_COMMA Args                          {$$ = new_node(Args, 3, $1, $2, 
     ;
 /* }}} */
 %%
-static int yyreport_syntax_error (const yypcontext_t *ctx)
-{
+static const char* yysymbol_to_str(yysymbol_kind_t sym){/*{{{*/
+    const char* res = NULL;
+    switch (sym){
+#define yysymbol_name_map(x, is_ter, str) \
+        case MUXONE(is_ter, YYSYMBOL_T_##x, YYSYMBOL_##x):\
+            res = str; \
+            break;
+        AllSyntaxSymbol(yysymbol_name_map)
+        default:
+            res = yysymbol_name(sym);
+            break;
+    }
+    return res;
+}/*}}}*/
+static int yyreport_syntax_error (const yypcontext_t *ctx) {/*{{{*/
   int res = 0;
   char emsg_buf[128];
   char* p = emsg_buf;
@@ -155,15 +170,15 @@ static int yyreport_syntax_error (const yypcontext_t *ctx)
     if (n < 0)  res = n;
     else
       for (int i = 0; i < n; ++i)
-        p += sprintf (p, "%s %s",
-                 i == 0 ? "expected" : " or", yysymbol_name (expected[i]));
+        p += sprintf (p, "%s \"%s\".",
+                 i == 0 ? "expected" : " or", yysymbol_to_str (expected[i]));
   }
   // Report the unexpected token.
   {
     yysymbol_kind_t lookahead = yypcontext_token (ctx);
     if (lookahead != YYSYMBOL_YYEMPTY)
-        p += sprintf (p, "syntax error before %s", yysymbol_name (lookahead));
+        p += sprintf (p, "unexpected \"%s\".", yysymbol_to_str (lookahead));
   }
   yyerror(yypcontext_location (ctx), emsg_buf);
   return res;
-}
+}/*}}}*/

@@ -5,3 +5,4 @@ syntax.tab.h
 /**/*.o
 /**/*.output
 parser
+compile_flags.txt

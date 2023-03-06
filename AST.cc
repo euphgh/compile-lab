@@ -17,7 +17,7 @@ static int root_idx = 0;
 static bool has_root = false;
 static std::vector<std::pair<bool, node_t>> node_space;
 
-#define synt_t_map(x, is_ter_sym) std::make_pair(x, std::make_pair(#x, is_ter_sym)),
+#define synt_t_map(x, is_ter_sym, str) std::make_pair(x, std::make_pair(#x, is_ter_sym)),
 static std::map<synt_t, std::pair<std::string, bool>> id_to_str = {
     AllSyntaxSymbol(synt_t_map)
 };
@@ -90,7 +90,7 @@ int new_node(synt_t synt_sym, int cld_nr, ...) {/*{{{*/
 
 void set_root(int node_idx){ root_idx = node_idx; }
 
-static void print_node(node_t& node, int level){
+static void print_node(node_t& node, int level){/*{{{*/
     for (size_t i = 0; i < level; i++) fmt::print("  ");
     switch (node.synt_sym) {
         case ID:
@@ -109,7 +109,7 @@ static void print_node(node_t& node, int level){
             fmt::print("{}\n", id_to_str[node.synt_sym].first);
             break;
     }
-}
+}/*}}}*/
 
 static void print_from(int idx, int level){/*{{{*/
     auto node = node_space.at(idx).second;
