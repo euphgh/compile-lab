@@ -26,7 +26,6 @@ static int yycolumn = 1;
     yylloc->first_column = yycolumn; \
     yylloc->last_column = yycolumn + yyleng - 1; \
     yycolumn += yyleng;
-static bool in_blk_cmt = false;
 %}
 %option yylineno
 %option bison-bridge bison-locations
@@ -106,7 +105,7 @@ ID [[:alpha:]](([[:alnum:]]|_){0,31})
 [[:space:]]+ {}
 .           {fprintf(stderr, "Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext); has_lexical_error = true;}
 %%
-static void remove_blk_cmt(){
+static void remove_blk_cmt(){/*{{{*/
     char first='\0', second = '\0';
     bool is_blk_end = false;
     bool is_eof = false;
@@ -116,4 +115,4 @@ static void remove_blk_cmt(){
         is_eof = second==0;
         is_blk_end = (first=='*') && (second=='/');
     } while(!is_blk_end && !is_eof);
-}
+}/*}}}*/
