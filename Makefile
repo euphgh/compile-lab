@@ -5,8 +5,9 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-CFLAGS = -std=gnu11 -g
-CXXFLAGS = -std=gnu++11 -g
+LOGOUT ?= 0
+CFLAGS = -std=gnu11 -g -DLOGOUT=$(LOGOUT)
+CXXFLAGS = -std=gnu++11 -g -DLOGOUT=$(LOGOUT)
 
 # 编译目标：src目录下的所有.c文件
 CFILES = $(shell find ./ -name "*.c")
@@ -25,7 +26,7 @@ $(BINARY): syntax $(filter-out $(LFO),$(OBJS))
 	$(CXX) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly -lfmt
 
 syntax: lexical syntax-c
-	$(CC) -c -g $(YFC) -o $(YFO)
+	$(CC) -c -g $(YFC) -o $(YFO) $(CFLAGS)
 
 lexical: $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
@@ -37,8 +38,8 @@ syntax-c: $(YFILE)
 
 # 定义的一些伪目标
 .PHONY: clean test
-NUM ?= 1
-ARGS = ../Test/optional/test$(NUM).cmm
+CMM ?= opt/test3
+ARGS = ../Test/$(CMM).cmm
 EXEC_CL = $(BINARY) $(ARGS)
 gdb: $(BINARY)
 	gdb -s $(BINARY) --args $(EXEC_CL)

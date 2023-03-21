@@ -4,7 +4,7 @@
 #include "include/macro.h"
 extern bool has_syntax_error;
 void yyerror (YYLTYPE *locp, char const *msg){
-    fprintf (stderr,  "Error type B at Line %d: %s\n", locp->first_line, msg);
+    fprintf (stdout,  "Error type B at Line %d: %s\n", locp->first_line, msg);
     has_syntax_error = true;
 }
 %}
@@ -17,16 +17,15 @@ void yyerror (YYLTYPE *locp, char const *msg){
 }
 %token <node_idx> T_INT T_FLOAT
 %token <node_idx> T_SEMI T_COMMA
-%right <node_idx> T_ASSIGNOP
 
+%right <node_idx> T_ASSIGNOP
 %left  <node_idx> T_OR
 %left  <node_idx> T_AND
 %nonassoc <node_idx> T_RELOP  
 %left  <node_idx> T_PLUS T_MINUS
 %left  <node_idx> T_STAR T_DIV
-%left  <node_idx> T_LP T_RP
 %right <node_idx> T_NOT
-%left <node_idx> T_DOT T_LB T_RB
+%left <node_idx> T_DOT T_LB T_RB T_LP T_RP
 
 %token <node_idx> T_LC
 %token <node_idx> T_RC
@@ -38,7 +37,6 @@ void yyerror (YYLTYPE *locp, char const *msg){
 %token <node_idx> T_WHILE  
 %token <node_idx> T_TYPE  
 %token <node_idx> T_ID
-%token <node_idx> T_empty /* only use for compile */
 
 /*{{{*/
 %type <node_idx> Program ExtDefList ExtDef ExtDecList
@@ -52,7 +50,7 @@ void yyerror (YYLTYPE *locp, char const *msg){
 /* High-level Definitions {{{*/
 Program: ExtDefList                             {$$ = new_node(Program, 1, $1); set_root($$);}
        ;
-ExtDefList: /* empty */                         {value_t e = {.cnt_int=0,}; $$ = new_node(ExtDefList, 1, new_leaf(empty, e));}
+ExtDefList: /* empty */                         {$$ = -1;}
           | ExtDef ExtDefList                   {$$ = new_node(ExtDefList, 2, $1, $2);}
           ;
 ExtDef: Specifier ExtDecList T_SEMI             {$$ = new_node(ExtDef, 3, $1, $2, $3);}
@@ -70,7 +68,7 @@ Specifier: T_TYPE                               {$$ = new_node(Specifier, 1, $1)
 StructSpecifier: T_STRUCT OptTag T_LC DefList T_RC    {$$ = new_node(StructSpecifier, 5, $1, $2, $3, $4, $5);}
                | T_STRUCT Tag                   {$$ = new_node(StructSpecifier, 2, $1, $2);}
                ;
-OptTag: /* empty */                             {value_t e = {.cnt_int=0,}; $$ = new_node(ExtDefList, 1, new_leaf(empty, e));}
+OptTag: /* empty */                             {$$ = -1;}
       | T_ID                                    {$$ = new_node(OptTag, 1, $1);}
       ;
 Tag: T_ID                                       {$$ = new_node(Tag, 1, $1);}
@@ -92,7 +90,7 @@ ParamDec: Specifier VarDec                      {$$ = new_node(ParamDec, 1, $1);
 /* Statements {{{*/
 CompSt: T_LC DefList StmtList T_RC              {$$ = new_node(CompSt, 4, $1, $2, $3, $4);}
       ;
-StmtList: /* empty */                           {value_t e = {.cnt_int=0,}; $$ = new_node(ExtDefList, 1, new_leaf(empty, e));}
+StmtList: /* empty */                           {$$ = -1;}
         |Stmt StmtList                          {$$ = new_node(StmtList, 2, $1, $2);}
         ;
 Stmt: Exp T_SEMI                                {$$ = new_node(Stmt, 2, $1, $2);}
@@ -105,7 +103,7 @@ Stmt: Exp T_SEMI                                {$$ = new_node(Stmt, 2, $1, $2);
     ;
 /* }}} */
 /* Local Definitions {{{*/
-DefList: /* empty */                            {value_t e = {.cnt_int=0,}; $$ = new_node(ExtDefList, 1, new_leaf(empty, e));}
+DefList: /* empty */                            {$$ = -1;}
        | Def DefList                            {$$ = new_node(DefList, 2, $1, $2);}
        ;
 Def: Specifier DecList T_SEMI                   {$$ = new_node(Def, 3, $1, $2, $3);}

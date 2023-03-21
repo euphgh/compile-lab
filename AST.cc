@@ -74,16 +74,21 @@ int new_leaf(synt_t synt_sym, value_t attrib) {/*{{{*/
     return idx;
 }/*}}}*/
 
-int new_node(synt_t synt_sym, int cld_nr, ...) {/*{{{*/
+int new_node(synt_t synt_sym, int argc, ...) {/*{{{*/
     int idx = new_space();
     node_t& node = check_new_node(idx);
-    node.cld_nr = cld_nr;
     node.synt_sym = synt_sym;
 
     va_list argv;
-    va_start(argv, cld_nr);
-    for (size_t i = 0; i < cld_nr; i++)
-        node.cld_idx[i] = va_arg(argv, int);
+    va_start(argv, argc);
+    int son_nr = 0;
+    for (size_t i = 0; i < argc; i++){
+        int new_son = va_arg(argv, int);
+        if (new_son==-1) continue;
+        node.cld_idx[i] = new_son;
+        son_nr++;
+    }
+    node.cld_nr = son_nr;
     va_end(argv);
     return idx;
 }/*}}}*/
@@ -103,7 +108,7 @@ static void print_node(node_t& node, int level){/*{{{*/
             fmt::print("INT: {}\n", node.attrib.cnt_int);
             break;
         case FLOAT:
-            fmt::print("FLOAT: {:.6}\n", node.attrib.cnt_int);
+            fmt::print("FLOAT: {:.6}\n", node.attrib.cnt_flt);
             break;
         default:
             fmt::print("{}\n", id_to_str[node.synt_sym].first);

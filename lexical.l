@@ -103,7 +103,7 @@ ID [[:alpha:]](([[:alnum:]]|_){0,31})
 \n  { yycolumn = 1;}
 \t+ { }
 [[:space:]]+ {}
-.           {fprintf(stderr, "Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext); has_lexical_error = true;}
+.           {fprintf(stdout, "Error type A at Line %d: Mysterious characters \'%s\'\n", yylineno, yytext); has_lexical_error = true;}
 %%
 static void remove_blk_cmt(){/*{{{*/
     char first='\0', second = '\0';

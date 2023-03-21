@@ -33,14 +33,12 @@
 #define ANSI_BG_CYAN    "\33[1;46m"
 #define ANSI_BG_WHITE   "\33[1;47m"
 #define ANSI_NONE       "\33[0m"
-
+#include "macro.h"
 #define ASSERT_GDB 1
-
 
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 
-#define _Log(...) \
-    printf(__VA_ARGS__);
+#define _Log(...) IFONE(LOGOUT, printf(__VA_ARGS__));
 
 #define Log(format, ...) \
     _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \
