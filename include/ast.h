@@ -59,23 +59,22 @@ typedef enum{
 #define synt_t_enum(x, is_ter_sym, str) x,
     AllSyntaxSymbol(synt_t_enum)
 } synt_t;
+
 typedef union {
     int cnt_int;
     float cnt_flt;
     const char* id_lit;
 } value_t;
-typedef struct {
-    int par_idx;
-    int cld_idx[8];
-    int cld_nr;
-    unsigned line;
-    synt_t synt_sym;
-    value_t attrib; 
-} node_t;
 
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 int new_leaf(synt_t synt_sym, value_t attrib);
 int new_node(synt_t synt_sym, int cld_nr, ...);
 void set_root(int node_idx);
 void print_from_root();
-
-#endif /* __AST_H__ */
+#ifdef __cplusplus
+}
+#endif
+#endif

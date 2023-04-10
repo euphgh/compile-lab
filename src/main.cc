@@ -5,7 +5,7 @@ extern "C" {
     bool has_lexical_error;
     bool has_syntax_error;
 }
-#include "AST.h"
+#include "ast.hh"
 int main(int argc, char** argv){
     if (argc <= 1) return 1;
     FILE* f = fopen(argv[1], "r");

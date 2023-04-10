@@ -18,6 +18,7 @@ template <class T> class sym_table {
 class var_table : public sym_table<var_t> {
     public:
         var_table();
+        bool check_and_insert(var_t item);
 };
 extern var_table g_var_tbl;
 extern std::stack<var_table> l_var_tbl;
