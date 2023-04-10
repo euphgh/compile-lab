@@ -33,25 +33,39 @@
 #define ANSI_BG_CYAN    "\33[1;46m"
 #define ANSI_BG_WHITE   "\33[1;47m"
 #define ANSI_NONE       "\33[0m"
-#include "macro.h"
 #define ASSERT_GDB 1
-
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
+#include "macro.h"
+#include <csignal>
+#include <cassert>
 
+#ifdef C_FMT
 #define _Log(...) IFONE(LOGOUT, printf(__VA_ARGS__));
-
 #define Log(format, ...) \
     _Log(ANSI_FMT("[%s:%d %s] " format, ANSI_FG_BLUE) "\n", \
         __FILE__, __LINE__, __func__, ## __VA_ARGS__)
-
-#define Assert(cond, format, ...) \
+#define Assert(cond, fmtstr, ...) \
   do { \
       if (!(cond)) { \
           fflush(stdout); \
-          fprintf(stderr, ANSI_FMT(format, ANSI_FG_RED) "\n", ##  __VA_ARGS__); \
+          fprintf(stderr, ANSI_FMT(fmtstr "\n", ANSI_FG_RED) , ## __VA_ARGS__); \
           IFDEF(ASSERT_GDB, raise(SIGTRAP), assert(cond)); \
     } \
   } while (0)
+#else 
+#define _Log(...) IFONE(LOGOUT, fmt::print(__VA_ARGS__));
+#define Log(format, ...) \
+    _Log(ANSI_FMT("[{:s}:{:d} {:s}] " format, ANSI_FG_BLUE) "\n", \
+        __FILE__, __LINE__, __func__, ## __VA_ARGS__)
+#define Assert(cond, fmtstr, ...) \
+  do { \
+      if (!(cond)) { \
+          fflush(stdout); \
+          fmt::print(stderr, ANSI_FMT(fmtstr "\n", ANSI_FG_RED) , ## __VA_ARGS__); \
+          IFDEF(ASSERT_GDB, raise(SIGTRAP), assert(cond)); \
+    } \
+  } while (0)
+#endif
 
 #define panic(format, ...) Assert(0, format, ## __VA_ARGS__)
 

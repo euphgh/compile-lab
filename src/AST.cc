@@ -1,13 +1,13 @@
 extern "C" {
-#include "include/AST.h"
+#include "AST.h"
 }
 #include <vector>
 #include <memory>
 #include <cassert>
 #include <cstring>
 #include <cstdarg>
-#include "include/debug.h"
-#include "include/macro.h"
+#include "debug.h"
+#include "macro.h"
 #include <cstdio>
 #include "fmt/core.h"
 #include <csignal>
@@ -128,3 +128,7 @@ static void print_from(int idx, int level){/*{{{*/
 void print_from_root(){/*{{{*/
     print_from(root_idx,0);
 }/*}}}*/
+
+node_t& get_node(int index){
+    return node_space.at(index).second;
+}
