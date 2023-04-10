@@ -77,6 +77,5 @@ int new_leaf(synt_t synt_sym, value_t attrib);
 int new_node(synt_t synt_sym, int cld_nr, ...);
 void set_root(int node_idx);
 void print_from_root();
-node_t& get_node(int index);
 
 #endif /* __AST_H__ */

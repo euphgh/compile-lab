@@ -4,8 +4,8 @@ extern "C" {
     int yyparse (void);
     bool has_lexical_error;
     bool has_syntax_error;
-#include "include/AST.h"
 }
+#include "AST.h"
 int main(int argc, char** argv){
     if (argc <= 1) return 1;
     FILE* f = fopen(argv[1], "r");
