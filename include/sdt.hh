@@ -13,6 +13,14 @@ class hitIR {
 };
 class reg_t;
 class label_t;
+enum env_t{
+    NONE_ENV,
+    STRUCT_ENV,
+    COMPST_ENV
+} ;
+extern env_t def_env;
+extern const func_t* func_env;
+extern const var_table* struct_env;
 
 //////////////////////////////////////////////////////////////////////////////
 /// High-Level Definitions
@@ -56,7 +64,7 @@ const type_t* Specifier_c(const node_t& node);
  * return a point to it
  * Error16: id is not same with struct table and global var
  */
-const type_t* StructSpecifier_c();
+const type_t* StructSpecifier_c(const node_t& node);
 
 /** return unique id if empty
  */
@@ -136,20 +144,18 @@ hitIR Def_c(const node_t& node);
  *  merge all Dec Code
  *  only to distinguish two case
  */
-hitIR DecList_compst_c(const node_t& node, const type_t* inh_type);
-void DecList_struct_c(const node_t& node, const type_t* inh_type);
+hitIR DecList_c(const node_t& node, const type_t* inh_type);
 
-/** Dec_compst_c generate init code
+/** Dec_c has 2 option which distinguished by def_env
+ *
+ * Dec_compst_c generate init code
  * insert var returned by VarDec into current function stack top
  * Error03: var name nis not same with struct id and local var
- */
-hitIR Dec_compst_c(const node_t& node, const type_t* inh_type);
-
-/** Dec_struct_c not generate init code
+ * Dec_struct_c not generate init code
  * insert var returned by VarDec into struct var table
  * Error15: var name nis not same with struct field, and not init
  */
-void Dec_struct_c(const node_t& node, const type_t* inh_type);
+hitIR Dec_compst_c(const node_t& node, const type_t* inh_type);
 
 //////////////////////////////////////////////////////////////////////////////
 /// Expressions
