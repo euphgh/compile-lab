@@ -21,7 +21,7 @@ class node_t {
     unsigned line;
     synt_t synt_sym;
     value_t attrib;
-    const node_t& child_n (int n) const;
+    const node_t& child (int n) const;
 
     static int root_idx;
     static bool has_root;

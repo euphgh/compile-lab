@@ -91,7 +91,7 @@ const node_t& node_t::get_node(int index){/*{{{*/
     Assert(is_empty==false, "try get a empty node {}", index);
     return node;
 }/*}}}*/
-const node_t& node_t::child_n(int n) const {/*{{{*/
+const node_t& node_t::child(int n) const {/*{{{*/
     Assert(n < cld_nr, 
             "try get child {} from node {} who has {} child", n, self_idx, cld_nr);
     return get_node(cld_idx[n]);

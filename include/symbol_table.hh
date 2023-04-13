@@ -1,7 +1,7 @@
 #include "ast.h"
+#include <deque>
 #include <fmt/core.h>
 #include <map>
-#include <stack>
 #include <string>
 #include <vector>
 struct var_t;
@@ -22,9 +22,9 @@ class var_table : public sym_table<var_t> {
   public:
     var_table();
     bool check_and_insert(var_t item);
+    unsigned offset_of(std::string name);
 };
 extern var_table g_var_tbl;
-extern std::stack<var_table> l_var_tbl;
 
 class type_t {
     /*
@@ -52,16 +52,22 @@ class type_t {
     unsigned upper;
     unsigned size;
 
+    type_t();
     type_t(const type_t* sub_type, unsigned _unpper); // array
     type_t(std::string id, var_table _sub);
-    bool is_int();
-    bool is_float();
-    bool is_basic();
-    bool is_array();
-    bool is_struct();
+    bool is_int() const;
+    bool is_float() const;
+    bool is_basic() const;
+    bool is_array() const;
+    bool is_struct() const;
+    bool not_match(type_t* other) const;
+    std::string to_string() const;
 };
 
-class type_table : public sym_table<type_t> {};
+class type_table : public sym_table<type_t> {
+  public:
+    const type_t* undefined_type();
+};
 extern type_table g_type_tbl;
 
 class func_table : public sym_table<func_t> {};
@@ -72,10 +78,26 @@ struct var_t {
     const type_t* type;
 };
 
+struct compst_node {
+    var_table vars;
+    compst_node* parent;
+    std::vector<compst_node*> sub;
+
+  public:
+    static compst_node* new_root(var_table root_vars);
+    compst_node* add_child(var_table child_vars);
+    void is_root();
+    compst_node* up();
+    compst_node* child(unsigned num);
+    const std::vector<compst_node*>& children();
+    void log();
+};
+
 struct func_t {
     std::string name;
-    const type_t* ret_type; // point to a element in type_table
-    var_table para;         // instance, not point
+    const type_t* ret_type;
+    const var_table para;
+    compst_node* compst_tree;
 };
 
 #define E_TABLE(_)                                                             \
@@ -93,7 +115,7 @@ struct func_t {
     _(12, "\"{}\" is not a integer")                                           \
     _(13, "Illegal use of \".\"")                                              \
     _(14, "Non-existent field \"{}\"")                                         \
-    _(15, "Redefined field \"{}\"")                                            \
+    _(15, "Redefined or define with inital field \"{}\"")                      \
     _(16, "Duplicated name \"{}\"")                                            \
     _(17, "Undefined structure \"{}\"")
 
