@@ -30,8 +30,8 @@ class reg_t {
     hitIR is_op_of(op_t op, float  src1, float  src2) const;
 
     hitIR is_addr_of(mem_t* src1) const ;
-    hitIR load_from(mem_t* src1) const ;
-    hitIR store_to(mem_t* src1) const ;
+    hitIR load_from(reg_t* src1) const ;
+    hitIR store_to(reg_t* src1) const ;
 };
 class mem_t {
   public:

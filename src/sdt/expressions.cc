@@ -43,7 +43,7 @@ static hitIR triple_reg(reg_t::op_t op, string op_str, const node_t& node,
     code.append(place->is_op_of(reg_t::op_add, left, right));
     return code;
 }
-hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type) {
+hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
     enum exp_t {
         EXPR_ALL(DEF_EXPR_TYPE) IS_ERROR,
     } exp_type = EXPR_ALL(JUDGE_EXPR) IS_ERROR;
@@ -64,17 +64,45 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type) {
     case LP_Exp_RP:
         Exp_c(node.child(1), place, nullptr);
         break;
+    case Exp_DOT_ID: {
+                         reg_t* struct_base = reg_t::new_unique();
+                         const type_t* struct_ret;
+                         code.append(Exp_c(node.child(0), struct_base, struct_ret));
+                         if (struct_ret->is_struct()==false)
+                             Error13(node.line, node.child(0).to_string());
+                         reg_t* offset = reg_t::new_unique();
+                         string field_name = node.child(2).attrib.id_lit;
+                         const var_table& struct_vars = struct_ret->sub;
+                         const var_t* field_var = struct_vars.find(field_name);
+                         if (field_var==nullptr){
+                             Error14(node.line, field_name, struct_ret->name);
+                             break;
+                         }
+                         code.append(offset->assign((int)struct_vars.
+                                     offset_of(field_name)));
+                         self_ret = field_var->type;
+                         if (self_ret->is_basic()) {
+                             reg_t* addr = reg_t::new_unique();
+                             code.append(addr->is_op_of(reg_t::op_add, struct_base, offset));
+                             code.append(place->load_from(addr));
+                         }
+                         else code.append(place->is_op_of(reg_t::op_add, struct_base, offset));
+                         break;
+                     }
     case Exp_LB_Exp_RB: {
-                            reg_t* array_addr = reg_t::new_unique();
-                            const type_t* ret_type;
-                            code.append(Exp_c(node.child(0), array_addr, ret_type));
-                            if (ret_type->is_array()==false)
-                                Error10(node.line, ret_type->to_string());
+                            reg_t* array_base = reg_t::new_unique();
+                            const type_t* sub_ret;
+                            code.append(Exp_c(node.child(0), array_base, sub_ret));
+                            if (sub_ret->is_array()==false)
+                                Error10(node.line, node.child(0).to_string());
                             reg_t* index = reg_t::new_unique();
-                            code.append(Exp_c(node.child(2), index, ret_type));
-                            if (ret_type->is_int()==false)
-                                Error12(node.line, ret_type->to_string());
-
+                            code.append(Exp_c(node.child(2), index, sub_ret));
+                            if (sub_ret->is_int()==false)
+                                Error12(node.line, node.child(2).to_string());
+                            reg_t* offset = reg_t::new_unique();
+                            code.append(offset->is_op_of(reg_t::op_mul, (int)sub_ret->base_size(), index)) ;
+                            code.append(place->is_op_of(reg_t::op_add, array_base, offset));
+                            self_ret = g_type_tbl.find(sub_ret->base_name());
                             break;
                         }
     case ID_LP_RP: {
@@ -130,6 +158,21 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type) {
     case IS_INT:
         code = place->assign(node.attrib.cnt_int);
         break;
+    case IS_ID:{
+                   string id_name = node.child(0).attrib.id_lit;
+                   const var_t* id_var = nullptr;
+                   const compst_node* search_env = compst_env;
+                   do {
+                       id_var = search_env->find(id_name);
+                       search_env = search_env->up();
+                   } while (search_env!=nullptr && id_var==nullptr);
+                   id_var = id_var ? id_var : func_env->find_param(id_name);
+                   id_var = id_var ? id_var : g_var_tbl.find(id_name);
+                   if (id_var==nullptr) {
+                       Error1(node.line, id_name);
+                       id_var = g_var_tbl
+                   }
+               }
     case IS_FLOAT:
         code = place->assign(node.attrib.cnt_flt);
         break;

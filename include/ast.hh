@@ -23,6 +23,7 @@ class node_t {
     value_t attrib;
     const node_t& child (int n) const;
     synt_t child_synt (int n) const;
+    std::string to_string () const;
 
     static int root_idx;
     static bool has_root;

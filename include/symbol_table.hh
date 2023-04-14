@@ -20,7 +20,7 @@ template <class T> class sym_table {
     std::map<std::string, T> table;
 
   public:
-    T* find(std::string id);
+    T* find(std::string id) const;
     void insert(T item);
     T* insert_ret(T item);
     bool append(sym_table table);
@@ -31,7 +31,7 @@ class var_table : public sym_table<var_t> {
   public:
     var_table();
     bool check_and_insert(var_t item);
-    unsigned offset_of(std::string name);
+    unsigned offset_of(std::string name) const;
 };
 extern var_table g_var_tbl;
 
@@ -70,6 +70,8 @@ class type_t {
     bool not_basic() const;
     bool is_array() const;
     bool is_struct() const;
+    unsigned base_size() const;
+    std::string base_name() const;
     bool not_match(type_t* other) const;
     std::string to_string() const;
 };
@@ -81,8 +83,8 @@ class type_table : public sym_table<type_t> {
 extern type_table g_type_tbl;
 
 class func_table : public sym_table<func_t> {
-    public:
-    const func_t* undefined_func();
+  public:
+    const func_t* undefined_func() const;
 };
 extern func_table g_func_tbl;
 
@@ -99,11 +101,12 @@ struct compst_node {
   public:
     static compst_node* new_root(var_table root_vars);
     compst_node* add_child(var_table child_vars);
-    void is_root();
-    compst_node* up();
-    compst_node* child(unsigned num);
-    const std::vector<compst_node*>& children();
-    void log();
+    bool is_root() const;
+    compst_node* up() const;
+    compst_node* child(unsigned num) const;
+    const std::vector<compst_node*>& children() const;
+    const var_t* find(std::string name) const;
+    void log() const;
 };
 
 class func_t {
@@ -111,10 +114,12 @@ class func_t {
     const type_t* ret_type;
     const var_table para;
     compst_node* compst_tree;
-    public:
+
+  public:
     bool param_match(const std::vector<const type_t*> param_type_list) const;
     hitIR call() const;
     std::string to_string() const;
+    const var_t* find_param(std::string) const;
 };
 
 #define E_TABLE(_)                                                             \
@@ -126,12 +131,12 @@ class func_t {
     _(6, "The left-hand side of an assignment must be a variable")             \
     _(7, "Type mismatched for oprand \"{}\", operator \"{}\", oprand\"{}\"")   \
     _(8, "Type mismatched for return \"{}\" with def type \"{}\"")             \
-    _(9, "Function \"{}\" is not applicable for arguments \"({})\"")             \
+    _(9, "Function \"{}\" is not applicable for arguments \"({})\"")           \
     _(10, "\"{}\" is not a array")                                             \
     _(11, "\"{}\" is not a function")                                          \
     _(12, "\"{}\" is not a integer")                                           \
-    _(13, "Illegal use of \".\"")                                              \
-    _(14, "Non-existent field \"{}\"")                                         \
+    _(13, "Illegal use of \".\" for Exp\"{}\"")                                \
+    _(14, "Non-existent field \"{}\" in struct \"{}\"")                        \
     _(15, "Redefined or define with inital field \"{}\"")                      \
     _(16, "Duplicated name \"{}\"")                                            \
     _(17, "Undefined structure \"{}\"")
