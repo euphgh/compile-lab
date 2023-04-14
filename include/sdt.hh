@@ -5,15 +5,6 @@
 #include <string>
 using std::string;
 using std::vector;
-class hitIR {
-    string code;
-
-  public:
-    /* append code into this and return self, like list */
-    hitIR append(hitIR code);
-    /* add code with this and return new hitIR */
-    hitIR plus(hitIR code) const;
-};
 class mem_t;
 class reg_t {
   public:
@@ -220,11 +211,11 @@ hitIR Dec_c(const node_t& node, const type_t* inh_type);
  * Error13: only struct var has Dot
  * Error14: struct var field name is in struct var table
  */
-hitIR Exp_c(const node_t& node, const reg_t* place, type_t* ret_type);
+hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type);
 
 /** generate code to eval expr and record repond reg
  */
-hitIR Args_c(const node_t& node, vector<mem_t*>& arg_list);
+hitIR Args_c(const node_t& node, vector<const type_t*>& param_list);
 
 /** generate goto code
  */

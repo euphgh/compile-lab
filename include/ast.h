@@ -53,6 +53,7 @@
     _(TYPE, T_SET, "type") \
     _(RELOP, T_SET, "RELOP") \
     _(ID, T_SET, "ID") \
+    _(NON, T_SET, "NON")
 /*}}}*/
 
 typedef enum{

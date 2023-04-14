@@ -1,12 +1,21 @@
 #include "ast.h"
-#include <deque>
 #include <fmt/core.h>
 #include <map>
 #include <string>
 #include <vector>
 struct var_t;
 struct type_t;
-struct func_t;
+class func_t;
+class hitIR {
+    std::string code;
+
+  public:
+    /* append code into this and return self, like list */
+    hitIR append(hitIR code);
+    /* add code with this and return new hitIR */
+    hitIR plus(hitIR code) const;
+};
+
 template <class T> class sym_table {
     std::map<std::string, T> table;
 
@@ -58,6 +67,7 @@ class type_t {
     bool is_int() const;
     bool is_float() const;
     bool is_basic() const;
+    bool not_basic() const;
     bool is_array() const;
     bool is_struct() const;
     bool not_match(type_t* other) const;
@@ -70,7 +80,10 @@ class type_table : public sym_table<type_t> {
 };
 extern type_table g_type_tbl;
 
-class func_table : public sym_table<func_t> {};
+class func_table : public sym_table<func_t> {
+    public:
+    const func_t* undefined_func();
+};
 extern func_table g_func_tbl;
 
 struct var_t {
@@ -93,11 +106,15 @@ struct compst_node {
     void log();
 };
 
-struct func_t {
+class func_t {
     std::string name;
     const type_t* ret_type;
     const var_table para;
     compst_node* compst_tree;
+    public:
+    bool param_match(const std::vector<const type_t*> param_type_list) const;
+    hitIR call() const;
+    std::string to_string() const;
 };
 
 #define E_TABLE(_)                                                             \
@@ -107,9 +124,9 @@ struct func_t {
     _(4, "Redefined function \"{}\"")                                          \
     _(5, "Type mismatched for assignment with left \"{}\" and right \"{}\"")   \
     _(6, "The left-hand side of an assignment must be a variable")             \
-    _(7, "Type mismatched for operands \"{}\" with type\"{}\"")                \
+    _(7, "Type mismatched for oprand \"{}\", operator \"{}\", oprand\"{}\"")   \
     _(8, "Type mismatched for return \"{}\" with def type \"{}\"")             \
-    _(9, "Function \"{}\" is not applicable for arguments \"{}\"")             \
+    _(9, "Function \"{}\" is not applicable for arguments \"({})\"")             \
     _(10, "\"{}\" is not a array")                                             \
     _(11, "\"{}\" is not a function")                                          \
     _(12, "\"{}\" is not a integer")                                           \
