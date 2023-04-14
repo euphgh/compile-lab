@@ -96,7 +96,7 @@ ID [[:alpha:]](([[:alnum:]]|_){0,31})
 {ELSE}      {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(ELSE,t);      Log("[%d][ELSE]: %s", yylineno, yytext); return T_ELSE;}
 {WHILE}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(WHILE,t);     Log("[%d][WHILE]: %s", yylineno, yytext); return T_WHILE;}
 {TYPE}      {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(TYPE,t);      Log("[%d][TYPE]: %s", yylineno, yytext); return T_TYPE;}
-{RELOP}     {value_t t = { .cnt_int = 0, };             yylval->node_idx = new_leaf(RELOP,t);     Log("[%d][RELOP]: %s", yylineno, yytext); return T_RELOP;}
+{RELOP}     {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(RELOP,t);     Log("[%d][RELOP]: %s", yylineno, yytext); return T_RELOP;}
 {ID}        {value_t t = { .id_lit = strdup(yytext), }; yylval->node_idx = new_leaf(ID,t);        Log("[%d][ID]: %s", yylineno,yytext);  return T_ID;}
 "//" {Log ("[%d][line  cmt]: %s", yylineno,yytext); char c = input(); while (c != '\n') c = input(); }
 "/*" {Log ("[%d][block cmt]: %s", yylineno,yytext); remove_blk_cmt();}

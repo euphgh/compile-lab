@@ -6,6 +6,10 @@
 struct var_t;
 struct type_t;
 class func_t;
+class mem_t;
+class reg_t;
+class label_t;
+
 class hitIR {
     std::string code;
 
@@ -15,6 +19,52 @@ class hitIR {
     /* add code with this and return new hitIR */
     hitIR plus(hitIR code) const;
 };
+
+class reg_t {
+  public:
+    static reg_t* new_unique();
+    static reg_t* map_var();
+    static reg_t* define_var(const var_t* basic_var);
+    hitIR assign(const reg_t* right) const ;
+    hitIR assign(int data) const ;
+    hitIR assign(float data) const ;
+    enum op_t{
+        op_add,
+        op_sub,
+        op_mul,
+        op_div
+    };
+    hitIR is_op_of(op_t op, reg_t* src1, reg_t* src2) const;
+
+    hitIR is_op_of(op_t op, int    src1, reg_t* src2) const;
+    hitIR is_op_of(op_t op, float  src1, reg_t* src2) const;
+
+    hitIR is_op_of(op_t op, reg_t* src1, int    src2) const;
+    hitIR is_op_of(op_t op, reg_t* src1, float  src2) const;
+
+    hitIR is_op_of(op_t op, int    src1, int    src2) const;
+    hitIR is_op_of(op_t op, float  src1, float  src2) const;
+
+    hitIR if_goto(std::string relop, const reg_t* src2, const label_t* b_true) const;
+    hitIR if_goto(std::string relop, int src2, const label_t* b_true) const;
+
+    hitIR is_addr_of(const mem_t* src1) const;
+    hitIR load_from (reg_t* src1) const;
+    hitIR store_to  (reg_t* src1) const;
+};
+class mem_t {
+  public:
+    static mem_t* dec(const var_t* derived_var, unsigned size); // on stack not heap
+    static mem_t* map_var(std::string name);
+};
+class label_t {
+  public:
+    static const label_t* new_label();
+    hitIR ir_goto() const;
+    hitIR ir_mark() const;
+};
+
+
 
 template <class T> class sym_table {
     std::map<std::string, T> table;
@@ -32,6 +82,7 @@ class var_table : public sym_table<var_t> {
     var_table();
     bool check_and_insert(var_t item);
     unsigned offset_of(std::string name) const;
+    const var_t* not_define_var() const;
 };
 extern var_table g_var_tbl;
 
@@ -91,6 +142,12 @@ extern func_table g_func_tbl;
 struct var_t {
     std::string name;
     const type_t* type;
+    // if basic type mem=null, reg point to instance
+    // else reg=null, mem point to instance
+    union {
+        const reg_t* reg;
+        const mem_t* mem;
+    } ir;
 };
 
 struct compst_node {
@@ -111,11 +168,11 @@ struct compst_node {
 
 class func_t {
     std::string name;
-    const type_t* ret_type;
     const var_table para;
     compst_node* compst_tree;
 
   public:
+    const type_t* ret_type;
     bool param_match(const std::vector<const type_t*> param_type_list) const;
     hitIR call() const;
     std::string to_string() const;

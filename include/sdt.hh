@@ -3,49 +3,7 @@
 #include "ast.hh"
 #include "symbol_table.hh"
 #include <string>
-using std::string;
-using std::vector;
 class mem_t;
-class reg_t {
-  public:
-    static reg_t* new_unique();
-    hitIR assign(reg_t* right) const ;
-    hitIR assign(int data) const ;
-    hitIR assign(float data) const ;
-    enum op_t{
-        op_add,
-        op_sub,
-        op_mul,
-        op_div
-    };
-    hitIR is_op_of(op_t op, reg_t* src1, reg_t* src2) const;
-
-    hitIR is_op_of(op_t op, int    src1, reg_t* src2) const;
-    hitIR is_op_of(op_t op, float  src1, reg_t* src2) const;
-
-    hitIR is_op_of(op_t op, reg_t* src1, int    src2) const;
-    hitIR is_op_of(op_t op, reg_t* src1, float  src2) const;
-
-    hitIR is_op_of(op_t op, int    src1, int    src2) const;
-    hitIR is_op_of(op_t op, float  src1, float  src2) const;
-
-    hitIR is_addr_of(mem_t* src1) const ;
-    hitIR load_from(reg_t* src1) const ;
-    hitIR store_to(reg_t* src1) const ;
-};
-class mem_t {
-  public:
-    static mem_t* global_var(string);
-    static mem_t* stack_var(string);
-    static mem_t* dec(unsigned size); // on stack not heap
-};
-class label_t {
-  public:
-    static label_t* new_label();
-    hitIR ir_goto();
-    hitIR ir_mark();
-};
-
 extern func_t* func_env;
 extern compst_node* compst_env;
 struct env_t {
@@ -105,11 +63,11 @@ const type_t* StructSpecifier_c(const node_t& node);
 
 /** return unique id if empty
  */
-string OptTag_c(const node_t& node);
+std::string OptTag_c(const node_t& node);
 
 /** return struct id
  */
-string Tag_c(const node_t& node);
+std::string Tag_c(const node_t& node);
 
 //////////////////////////////////////////////////////////////////////////////
 /// Declarators
@@ -215,9 +173,9 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type);
 
 /** generate code to eval expr and record repond reg
  */
-hitIR Args_c(const node_t& node, vector<const type_t*>& param_list);
+hitIR Args_c(const node_t& node, std::vector<const type_t*>& param_list);
 
 /** generate goto code
  */
-hitIR Cond_c(const node_t& node, label_t* b_true, label_t* b_false);
+hitIR Cond_c(const node_t& node, const label_t* b_true, const label_t* b_false);
 #endif
