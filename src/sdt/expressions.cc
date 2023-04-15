@@ -139,10 +139,10 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
             using std::accumulate;
             Error9(node.line, func->to_string(),
                    std::accumulate(std::next(param_type.begin()),
-                                   param_type.end(), param_type[0]->to_string(),
+                                   param_type.end(), param_type[0]->name,
                                    [](string a, const type_t* b) {
                                        return std::move(a) + "," +
-                                              b->to_string();
+                                              b->name;
                                    }));
         }
         self_ret = func->ret_type;
@@ -227,8 +227,8 @@ hitIR Cond_c(const node_t& node, const label_t* b_true,
         code.append(Exp_c(node.child(2), right, right_type));
         if (left_type->not_match(right_type) || !left_type->is_int() ||
             !right_type->is_int()) {
-            Error7(node.line, left_type->to_string(), node.child(1).to_string(),
-                   right_type->to_string());
+            Error7(node.line, left_type->name, node.child(1).to_string(),
+                   right_type->name);
         }
         code.append(left->if_goto(node.child(1).attrib.id_lit, right, b_true));
         code.append(b_false->ir_goto());
