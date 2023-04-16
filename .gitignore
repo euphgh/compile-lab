@@ -6,3 +6,4 @@ syntax.tab.h
 /**/*.output
 parser
 compile_flags.txt
+cc

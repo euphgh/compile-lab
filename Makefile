@@ -23,23 +23,27 @@ HEADER += $(shell find ./include -name "*.hh")
 HEADER += $(shell find ./include -name "*.h")
 BINARY = cc
 
-$(BINARY): $(YFO) $(LFO) $(OBJS) $(HEADER)
+$(BINARY): $(YFO) $(OBJS) $(HEADER)
 	@mkdir -p $(BUILD_DIR)
-	$(CXX) -o $(BINARY) $(OBJS) $(YFO) -lfl -ly -lfmt
+	@$(CXX) -o $(BINARY) $(OBJS) $(YFO) -lfl -ly -lfmt
+	@echo + LD $(BINARY)
 
 $(OBJS): $(BUILD_DIR)/%.o:src/%.cc $(HEADER)
 	@mkdir -p $(dir $@)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
+	@echo + CXX $<
 
-
-$(YFO): $(LFC) syntax-c
-	$(CC) -c -g $(YFC) -o $(YFO) $(CFLAGS)
+$(YFO): $(LFC) $(YFC)
+	@$(CC) -c -g $(YFC) -o $(YFO) $(CFLAGS)
+	@echo + CC $(YFC)
 
 $(LFC): $(LFILE)
-	$(FLEX) -o $(LFC) $(LFILE)
+	@$(FLEX) -o $(LFC) $(LFILE)
+	@echo + FLEX $(LFILE)
 
 $(YFC): $(YFILE)
-	$(BISON) -o $(YFC) -d -v $(YFILE)
+	@$(BISON) -o $(YFC) -d -v $(YFILE)
+	@echo + BISON $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
@@ -48,9 +52,9 @@ $(YFC): $(YFILE)
 syntax: $(YFO)
 syntax-c: $(YFC)
 lexical: $(LFC)
-CMM ?= opt/test3
-ARGS = ../Test/$(CMM).cmm
-EXEC_CL = $(BINARY) $(ARGS)
+NUM ?= 1
+ARGS = ../Test/test$(NUM).cmm
+EXEC_CL = ./$(BINARY) $(ARGS)
 gdb: $(BINARY)
 	gdb -s $(BINARY) --args $(EXEC_CL)
 test: $(BINARY)
