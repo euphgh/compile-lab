@@ -160,7 +160,7 @@ class func_table {
     const func_t* find(std::string id) const;
     void insert(func_t item);
     func_t* insert_ret(func_t item);
-    const func_t* undefined_func() const;
+    inline const func_t* undefined_func() const { return undefined; }
 };
 extern func_table g_func_tbl;
 

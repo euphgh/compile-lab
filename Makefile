@@ -10,10 +10,9 @@ CFLAGS = -std=gnu2x -g -DLOGOUT=$(LOGOUT) -I./include
 CXXFLAGS = -std=gnu++20 -g -DLOGOUT=$(LOGOUT) -I./include
 
 # 编译目标：src目录下的所有.c 和 .cc文件
-CFILES = $(shell find ./ -name "*.c")
-CXXFILES = $(shell find ./ -name "*.cc")
-OBJS += $(CFILES:.c=.o)
-OBJS += $(CXXFILES:.cc=.o)
+BUILD_DIR = build
+CXXFILES = $(shell find src -name "*.cc")
+OBJS += $(CXXFILES:src/%.cc=$(BUILD_DIR)/%.o)
 LFILE = $(shell find ./ -name "*.l")
 YFILE = $(shell find ./ -name "*.y")
 LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
@@ -24,22 +23,31 @@ HEADER += $(shell find ./include -name "*.hh")
 HEADER += $(shell find ./include -name "*.h")
 BINARY = cc
 
-$(BINARY): syntax $(filter-out $(LFO),$(OBJS)) $(HEADER)
-	$(CXX) -o $(BINARY) $(filter-out $(LFO),$(OBJS)) -lfl -ly -lfmt
+$(BINARY): $(YFO) $(LFO) $(OBJS) $(HEADER)
+	@mkdir -p $(BUILD_DIR)
+	$(CXX) -o $(BINARY) $(OBJS) $(YFO) -lfl -ly -lfmt
 
-syntax: lexical syntax-c
+$(OBJS): $(BUILD_DIR)/%.o:src/%.cc $(HEADER)
+	@mkdir -p $(dir $@)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+
+$(YFO): $(LFC) syntax-c
 	$(CC) -c -g $(YFC) -o $(YFO) $(CFLAGS)
 
-lexical: $(LFILE)
+$(LFC): $(LFILE)
 	$(FLEX) -o $(LFC) $(LFILE)
 
-syntax-c: $(YFILE)
+$(YFC): $(YFILE)
 	$(BISON) -o $(YFC) -d -v $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 
 # 定义的一些伪目标
-.PHONY: clean test
+.PHONY: clean test syntax syntax lexical
+syntax: $(YFO)
+syntax-c: $(YFC)
+lexical: $(LFC)
 CMM ?= opt/test3
 ARGS = ../Test/$(CMM).cmm
 EXEC_CL = $(BINARY) $(ARGS)
@@ -49,5 +57,5 @@ test: $(BINARY)
 	$(EXEC_CL)
 clean:
 	rm -f ./$(BINARY) ./lex.yy.c ./syntax.tab.c ./syntax.tab.h ./syntax.output
-	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)
+	rm -rf ./$(BUILD_DIR)

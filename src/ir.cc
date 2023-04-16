@@ -12,7 +12,6 @@ hitIR* hitIR::append(std::unique_ptr<hitIR> code) {
         ir_list.push_back(ir);
     return this;
 }
-unsigned label_t::total = 0;
 const label_t* label_t::new_label() {
     label_pool.push_back(label_t {total++});
     return &*std::prev(label_pool.cend());
@@ -24,8 +23,6 @@ unique_ptr<hitIR> label_t::ir_mark() const{
     return make_unique<hitIR>(format("LABEL l{} :", id));
 }
 
-
-unsigned mem_t::total =0;
 mem_t::mem_t(unsigned _size, unsigned _id): id(_id), size(_size){}
 std::unique_ptr<hitIR> mem_t::dec(var_t* derived_var){
     derived_var->addr = new mem_t {derived_var->type->size, total++};

@@ -6,6 +6,7 @@ extern "C" {
     bool has_syntax_error;
 }
 #include "ast.hh"
+#include <sdt.hh>
 int main(int argc, char** argv){
     if (argc <= 1) return 1;
     FILE* f = fopen(argv[1], "r");
@@ -17,8 +18,8 @@ int main(int argc, char** argv){
     has_lexical_error = false;
     yyrestart(f);
     yyparse();
-
-    if (!has_lexical_error && !has_syntax_error) 
-        print_from_root();
+    // if (!has_lexical_error && !has_syntax_error) 
+    //     print_from_root();
+    Program_c(node_t::get_node(node_t::root_idx));
     return 0;
 }

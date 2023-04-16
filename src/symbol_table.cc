@@ -1,18 +1,23 @@
 #include "symbol_table.hh"
+#include "debug.h"
 #include <fmt/core.h>
+#include <iterator>
 #include <memory>
 #include <sstream>
 #include <string>
-#include "debug.h"
+using fmt::format;
+using std::make_unique;
 using std::string;
-using std::vector;
 using std::stringstream;
 using std::unique_ptr;
-using std::make_unique;
-using fmt::format;
-var_table g_var_tbl {};
-type_table g_type_tbl {};
-func_table g_func_tbl {};
+using std::vector;
+var_table g_var_tbl{};
+type_table g_type_tbl{};
+func_table g_func_tbl{};
+unsigned label_t::total = 0;
+unsigned mem_t::total = 0;
+unsigned reg_t::total = 0;
+std::vector<label_t> label_t::label_pool;
 const var_t* var_table::find(std::string id) const {
     for (auto ele = var_list.cbegin(); ele != var_list.cend(); ++ele)
         if (id == ele->name)
@@ -48,21 +53,25 @@ unsigned var_table::offset_of(std::string name) const {
             return offset_list[i];
     return ~0;
 };
-void var_table::log(unsigned indent){
+void var_table::log(unsigned indent) {
     for (auto var : var_list) {
-        for (size_t i = 0; i < indent; i++) 
+        for (size_t i = 0; i < indent; i++)
             fmt::print("  ");
-        fmt::print("{} {};\n",var.type->name, var.name);
+        fmt::print("{} {};\n", var.type->name, var.name);
     }
 }
 
-type_table::type_table(): undefined (new type_t {"undefined type"}) {}
+type_table::type_table() : undefined(new type_t{"undefined type"}) {}
 type_t::type_t(string name) : name(""), sub(var_table{}), upper(0), size(0) {}
 type_t::type_t(const type_t* sub_type, unsigned _unpper)
     : name(sub_type->name + "[" + std::to_string(_unpper) + "]"),
       sub(var_table{}), upper(_unpper), size((_unpper + 1) * sub_type->size) {}
 type_t::type_t(std::string id, var_table _sub)
     : name(id), sub(_sub), upper(0), size(_sub.size()) {}
+
+bool type_t::not_match(const type_t* other) const {
+    return name == other->name;
+}
 
 const type_t* type_table::find(std::string id) const {
     for (auto ele = type_list.cbegin(); ele != type_list.cend(); ++ele)
@@ -71,16 +80,16 @@ const type_t* type_table::find(std::string id) const {
     return nullptr;
 }
 void type_table::insert(type_t item) { type_list.push_back(item); }
-const type_t* type_table::insert_ret(type_t item){
+const type_t* type_table::insert_ret(type_t item) {
     type_list.push_back(item);
     return &*(std::prev(type_list.end()));
 }
 unsigned type_table::total_anonymous = 0;
-string type_table::unique_type_id(){
-    return "anonymous struct"+std::to_string(total_anonymous++);
+string type_table::unique_type_id() {
+    return "anonymous struct" + std::to_string(total_anonymous++);
 }
 
-func_table::func_table(): undefined(new func_t {"undefined func"}) {}
+func_table::func_table() : undefined(new func_t{"undefined func"}) {}
 const func_t* func_table::find(std::string id) const {
     for (auto ele = func_list.cbegin(); ele != func_list.cend(); ++ele)
         if (id == ele->name)
@@ -88,8 +97,9 @@ const func_t* func_table::find(std::string id) const {
     return nullptr;
 }
 void func_table::insert(func_t item) { func_list.push_back(item); }
-bool func_t::param_match(const std::vector<const type_t*> param_type_list) const{
-    const vector<var_t>& def_vct = params.var_list; 
+bool func_t::param_match(
+    const std::vector<const type_t*> param_type_list) const {
+    const vector<var_t>& def_vct = params.var_list;
     for (unsigned idx; idx < def_vct.size(); idx++) {
         if (def_vct[idx].type->not_match(param_type_list[idx]))
             return false;
@@ -97,12 +107,12 @@ bool func_t::param_match(const std::vector<const type_t*> param_type_list) const
     return true;
 }
 
-func_t* func_table::insert_ret(func_t item){
+func_t* func_table::insert_ret(func_t item) {
     func_list.push_back(item);
     return &*(std::prev(func_list.end()));
 }
 
-std::string func_t::to_string() const{
+std::string func_t::to_string() const {
     stringstream buffer(name);
     buffer << "(";
     for (auto var : params.var_list)
@@ -110,28 +120,34 @@ std::string func_t::to_string() const{
     buffer << ")";
     return buffer.str();
 }
-const var_t* func_t::find_param(std::string id) const{ return params.find(id); }
-unique_ptr<hitIR> func_t::def_func() const{
-    return make_unique<hitIR>(format("FUCTION {} :",name));
+const var_t* func_t::find_param(std::string id) const {
+    return params.find(id);
+}
+unique_ptr<hitIR> func_t::def_func() const {
+    return make_unique<hitIR>(format("FUCTION {} :", name));
 }
 
-compst_node::compst_node(var_table _vars, compst_node* _parent):
-    vars(_vars), parent(_parent) {}
-compst_node* compst_node::new_root(var_table root_vars){
+compst_node::compst_node(var_table _vars, compst_node* _parent)
+    : vars(_vars), parent(_parent) {}
+compst_node* compst_node::new_root(var_table root_vars) {
     return new compst_node(root_vars);
 }
-void compst_node::log() const{
-    recurse_print(0);
+
+compst_node* compst_node::add_child(var_table child_vars){
+    sub.push_back(new compst_node{child_vars});
+    return *std::prev(sub.end());
 }
+void compst_node::log() const { recurse_print(0); }
 void compst_node::recurse_print(unsigned level) const {
     for (auto son : sub) {
-        if (son->sub.size() > 0) son->recurse_print(level+1);
+        if (son->sub.size() > 0)
+            son->recurse_print(level + 1);
         else {
-            for (size_t i = 0; i < level; i++) 
+            for (size_t i = 0; i < level; i++)
                 fmt::print("  ");
             fmt::print("{{\n");
-            son->vars.log((level+1)*2);
-            for (size_t i = 0; i < level; i++) 
+            son->vars.log((level + 1) * 2);
+            for (size_t i = 0; i < level; i++)
                 fmt::print("  ");
             fmt::print("}}\n");
         }

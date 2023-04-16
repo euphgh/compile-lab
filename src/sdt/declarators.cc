@@ -2,7 +2,7 @@
 #include "sdt.hh"
 #include <deque>
 using std::string;
-const var_t VarDec_c(node_t& node, const type_t* inh_type) {
+const var_t VarDec_c(const node_t& node, const type_t* inh_type) {
     if (node.synt_sym == ID) {
         string id_name = node.attrib.id_lit;
         return var_t{.name = id_name, .type = inh_type};
@@ -16,7 +16,7 @@ const var_t VarDec_c(node_t& node, const type_t* inh_type) {
     }
 }
 
-func_t* FunDec_c(node_t& node, const type_t* inh_ret_type) {
+func_t* FunDec_c(const node_t& node, const type_t* inh_ret_type) {
     string func_name = node.child(0).attrib.id_lit;
     if (g_func_tbl.find(func_name) != nullptr)
         Error3(node.line, node.attrib.id_lit);
@@ -34,13 +34,13 @@ func_t* FunDec_c(node_t& node, const type_t* inh_ret_type) {
     return func_p;
 }
 
-var_table VarList_c(node_t& node) {
+var_table VarList_c(const node_t& node) {
     var_t para = ParamDec_c(node.child(0));
     var_table res = (node.cld_nr == 1) ? var_table{} : VarList_c(node.child(2));
     res.insert(para);
     return res;
 }
 
-var_t ParamDec_c(node_t& node) {
+var_t ParamDec_c(const node_t& node) {
     return VarDec_c(node.child(1), Specifier_c(node.child(0)));
 }

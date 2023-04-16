@@ -7,7 +7,7 @@
 #include <csignal>
 #include <map>
 #include <tuple>
-
+#include <sstream>
 
 /////////////////////////////////////////////////
 /// impliment for cpp class
@@ -15,9 +15,10 @@
 #define synt_t_map(x, is_ter_sym, str) std::make_pair(x, std::make_pair(#x, is_ter_sym)),
 const std::map<synt_t, std::pair<std::string, bool>> node_t::id_to_str = {
         AllSyntaxSymbol(synt_t_map)
-    };
+};
 int node_t::root_idx = 0;
 bool node_t::has_root = false;
+std::vector<std::pair<bool, node_t>> node_t::node_space;
 int node_t::new_space(){/*{{{*/
     bool has_space = false;
     int idx = 0;
@@ -95,6 +96,28 @@ const node_t& node_t::child(int n) const {/*{{{*/
     Assert(n < cld_nr, 
             "try get child {} from node {} who has {} child", n, self_idx, cld_nr);
     return get_node(cld_idx[n]);
+}/*}}}*/
+std::string node_t::to_string () const{/*{{{*/
+    std::stringstream buffer("");
+    if (id_to_str.at(synt_sym).second) {
+        switch (synt_sym) {
+            case INT:
+                buffer << attrib.cnt_int;
+                break;
+            case FLOAT:
+                buffer << attrib.cnt_flt;
+                break;
+            default:
+                buffer << attrib.id_lit;
+                break;
+        }
+    }
+    else {
+        for (size_t i = 0; i < cld_nr; i++) {
+            buffer << child(i).to_string() << " ";
+        }
+    }
+    return buffer.str();
 }/*}}}*/
 
 /////////////////////////////////////////////////

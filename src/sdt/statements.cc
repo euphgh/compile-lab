@@ -32,8 +32,10 @@ std::unique_ptr<hitIR> Stmt_c(const node_t& node) {
         break;
     }
     case CompSt: {
+        compst_node* last_env = compst_env;
         compst_env = compst_env->add_child(var_table{});
         code = CompSt_c(node.child(0));
+        compst_env = last_env;
         break;
     }
     case IF: {

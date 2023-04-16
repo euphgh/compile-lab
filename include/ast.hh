@@ -22,7 +22,7 @@ class node_t {
     synt_t synt_sym;
     value_t attrib;
     const node_t& child (int n) const;
-    synt_t child_synt (int n) const;
+    inline synt_t child_synt (int n) const { return child(n).synt_sym; }
     std::string to_string () const;
 
     static int root_idx;
