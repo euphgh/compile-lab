@@ -5,7 +5,7 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-LOGOUT ?= 0
+LOGOUT ?= 1
 CFLAGS = -std=gnu2x -g -DLOGOUT=$(LOGOUT) -I./include
 CXXFLAGS = -std=gnu++20 -g -DLOGOUT=$(LOGOUT) -I./include
 
@@ -25,25 +25,25 @@ BINARY = cc
 
 $(BINARY): $(YFO) $(OBJS) $(HEADER)
 	@mkdir -p $(BUILD_DIR)
-	@$(CXX) -o $(BINARY) $(OBJS) $(YFO) -lfl -ly -lfmt
 	@echo + LD $(BINARY)
+	@$(CXX) -o $(BINARY) $(OBJS) $(YFO) -lfl -ly -lfmt
 
 $(OBJS): $(BUILD_DIR)/%.o:src/%.cc $(HEADER)
 	@mkdir -p $(dir $@)
-	@$(CXX) $(CXXFLAGS) -c $< -o $@
 	@echo + CXX $<
+	@$(CXX) $(CXXFLAGS) -c $< -o $@
 
 $(YFO): $(LFC) $(YFC)
-	@$(CC) -c -g $(YFC) -o $(YFO) $(CFLAGS)
 	@echo + CC $(YFC)
+	@$(CC) -c -g $(YFC) -o $(YFO) $(CFLAGS)
 
 $(LFC): $(LFILE)
-	@$(FLEX) -o $(LFC) $(LFILE)
 	@echo + FLEX $(LFILE)
+	@$(FLEX) -o $(LFC) $(LFILE)
 
 $(YFC): $(YFILE)
-	@$(BISON) -o $(YFC) -d -v $(YFILE)
 	@echo + BISON $(YFILE)
+	@$(BISON) -o $(YFC) -d -v $(YFILE)
 
 -include $(patsubst %.o, %.d, $(OBJS))
 

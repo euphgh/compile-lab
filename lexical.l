@@ -1,6 +1,7 @@
 %{
 #include "syntax.tab.h"
 #include "ast.h"
+#define C_FMT
 #include "debug.h"
 #include <stdbool.h>
 extern bool has_lexical_error;

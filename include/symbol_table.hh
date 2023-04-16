@@ -23,6 +23,7 @@ class hitIR {
 class reg_t {
     static unsigned total;
     unsigned id;
+
   public:
     reg_t(unsigned _id) : id(_id) {}
     static reg_t* new_unique();
@@ -30,15 +31,24 @@ class reg_t {
     std::unique_ptr<hitIR> assign(const reg_t* right) const;
     std::unique_ptr<hitIR> assign(int data) const;
     std::unique_ptr<hitIR> assign(float data) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1, reg_t* src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1, reg_t* src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, float src1, reg_t* src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1, int src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1, float src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1, int src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, float src1, float src2) const;
-    std::unique_ptr<hitIR> if_goto(std::string relop, const reg_t* src2, const label_t* b_true) const;
-    std::unique_ptr<hitIR> if_goto(std::string relop, int src2, const label_t* b_true) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1,
+                                    reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1,
+                                    reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, float src1,
+                                    reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1,
+                                    int src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1,
+                                    float src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1,
+                                    int src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, float src1,
+                                    float src2) const;
+    std::unique_ptr<hitIR> if_goto(std::string relop, const reg_t* src2,
+                                   const label_t* b_true) const;
+    std::unique_ptr<hitIR> if_goto(std::string relop, int src2,
+                                   const label_t* b_true) const;
     std::unique_ptr<hitIR> is_addr_of(const mem_t* src1) const;
     std::unique_ptr<hitIR> load_from(const reg_t* src1) const;
     std::unique_ptr<hitIR> store_to(const reg_t* src1) const;
@@ -49,6 +59,7 @@ class reg_t {
 class mem_t {
     static std::vector<mem_t> mem_pool;
     static unsigned total;
+
   public:
     static std::unique_ptr<hitIR> dec(var_t* derived_var); // on stack not heap
     mem_t(unsigned _size, unsigned _id);
@@ -117,7 +128,8 @@ class type_t {
     unsigned upper;
     unsigned size;
 
-    type_t(std::string name = "");
+    type_t(std::string _name = "", unsigned _upper = 0, unsigned _size = 0)
+        : name(_name), sub(), upper(_upper), size(_size) {}
     type_t(const type_t* sub_type, unsigned _unpper); // array
     type_t(std::string id, var_table _sub);
     inline bool is_int() const { return name == "int"; }
@@ -198,8 +210,10 @@ class func_t {
     std::string name;
     compst_node* compst_tree;
     const type_t* ret_type;
-    func_t(std::string _name = "", const type_t* _ret_type = g_type_tbl.undefined_type(), var_table _param = var_table{},
-           compst_node* _compst_tree = nullptr){}
+    func_t(std::string _name = "",
+           const type_t* _ret_type = g_type_tbl.undefined_type(),
+           var_table _param = var_table{},
+           compst_node* _compst_tree = nullptr) {}
     bool param_match(const std::vector<const type_t*> param_type_list) const;
     std::string to_string() const;
     const var_t* find_param(std::string id) const;

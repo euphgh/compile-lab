@@ -3,8 +3,8 @@
 #include <deque>
 using std::string;
 const var_t VarDec_c(const node_t& node, const type_t* inh_type) {
-    if (node.synt_sym == ID) {
-        string id_name = node.attrib.id_lit;
+    if (node.child_synt(0) == ID) {
+        string id_name = node.child(0).attrib.id_lit;
         return var_t{.name = id_name, .type = inh_type};
     } else {
         const var_t sub_var = VarDec_c(node.child(0), inh_type);

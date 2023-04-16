@@ -1,5 +1,6 @@
 #include "debug.h"
 #include "sdt.hh"
+#include <memory>
 
 std::unique_ptr<hitIR> DefList_c(const node_t& node) {
     std::unique_ptr<hitIR> code = Def_c(node.child(0));
@@ -25,7 +26,7 @@ std::unique_ptr<hitIR> DecList_c(const node_t& node, const type_t* inh_type) {
 }
 
 std::unique_ptr<hitIR> Dec_c(const node_t& node, const type_t* inh_type) {
-    std::unique_ptr<hitIR> code;
+    auto code = std::make_unique<hitIR>();
     var_t var = VarDec_c(node.child(0), inh_type);
     var_table* def_tlb = def_env.def_table;
     switch (def_env.def_scope) {

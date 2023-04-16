@@ -3,6 +3,7 @@
 #include "sdt.hh"
 #include <fmt/color.h>
 #include <fmt/core.h>
+#include <memory>
 #include <numeric>
 #include <vector>
 #define EXPR_ALL(_)                                                            \
@@ -37,7 +38,7 @@ static bool exp_is_addr; // Exp_LB_Exp_RB, Exp_DOT_ID
 static std::unique_ptr<hitIR> triple_reg(string op_str, const node_t& node,
                                          const reg_t* place,
                                          const type_t* self_ret) {
-    std::unique_ptr<hitIR> code;
+    auto code = std::make_unique<hitIR>();
     reg_t* left = reg_t::new_unique();
     type_t *left_type, *right_type;
     reg_t* right = reg_t::new_unique();
@@ -58,7 +59,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
     enum exp_t {
         EXPR_ALL(DEF_EXPR_TYPE) IS_ERROR,
     } exp_type = EXPR_ALL(JUDGE_EXPR) IS_ERROR;
-    std::unique_ptr<hitIR> code;
+    std::unique_ptr<hitIR> code = std::make_unique<hitIR>();
     switch (exp_type) {
     case Exp_ASSIGNOP_Exp: {
         const reg_t* left_reg = reg_t::new_unique();
@@ -239,7 +240,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
 
 std::unique_ptr<hitIR> Args_c(const node_t& node,
                               vector<const type_t*>& param_list) {
-    std::unique_ptr<hitIR> code;
+    std::unique_ptr<hitIR> code = std::make_unique<hitIR>();
     reg_t* tmp1 = reg_t::new_unique();
     const type_t* self_ret;
     code->append(Exp_c(node.child(0), tmp1, self_ret));
@@ -251,7 +252,7 @@ std::unique_ptr<hitIR> Args_c(const node_t& node,
 
 std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true,
                               const label_t* b_false) {
-    std::unique_ptr<hitIR> code;
+    std::unique_ptr<hitIR> code = std::make_unique<hitIR>();
     switch (node.child(1).synt_sym) {
     case RELOP: {
         reg_t* left = reg_t::new_unique();

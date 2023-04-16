@@ -7,3 +7,5 @@ syntax.tab.h
 parser
 compile_flags.txt
 cc
+.vscode/
+.metals/

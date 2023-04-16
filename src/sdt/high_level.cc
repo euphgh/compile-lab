@@ -1,18 +1,21 @@
 #include "ast.h"
 #include "debug.h"
 #include "sdt.hh"
+#include <memory>
+using std::make_unique;
+using std::unique_ptr;
 
-std::unique_ptr<hitIR> Program_c(const node_t& root) { return ExtDefList_c(root.child(0)); }
+unique_ptr<hitIR> Program_c(const node_t& root) { return ExtDefList_c(root.child(0)); }
 
-std::unique_ptr<hitIR> ExtDefList_c(const node_t& node) {
-    std::unique_ptr<hitIR> code = ExtDef_c(node.child(0));
+unique_ptr<hitIR> ExtDefList_c(const node_t& node) {
+    unique_ptr<hitIR> code = ExtDef_c(node.child(0));
     if (node.cld_nr > 1)
         code->append(ExtDefList_c(node.child(1)));
     return code;
 }
 
 std::unique_ptr<hitIR> ExtDef_c(const node_t& node) {
-    std::unique_ptr<hitIR> code;
+    auto code = make_unique<hitIR>();
     switch (node.child(1).synt_sym) {
     case ExtDecList: {
         auto base_type = Specifier_c(node.child(0));

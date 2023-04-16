@@ -61,8 +61,10 @@ void var_table::log(unsigned indent) {
     }
 }
 
-type_table::type_table() : undefined(new type_t{"undefined type"}) {}
-type_t::type_t(string name) : name(""), sub(var_table{}), upper(0), size(0) {}
+type_table::type_table() : undefined(new type_t{"undefined type"}) {
+    type_list.push_back( type_t {"int",0,4});
+    type_list.push_back( type_t {"float",0,4});
+}
 type_t::type_t(const type_t* sub_type, unsigned _unpper)
     : name(sub_type->name + "[" + std::to_string(_unpper) + "]"),
       sub(var_table{}), upper(_unpper), size((_unpper + 1) * sub_type->size) {}
