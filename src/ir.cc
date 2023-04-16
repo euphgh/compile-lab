@@ -3,6 +3,9 @@
 #include <iterator>
 #include <memory>
 using std::unique_ptr;
+using std::make_unique;
+using fmt::format;
+using std::string;
 
 hitIR* hitIR::append(std::unique_ptr<hitIR> code) {
     for (auto ir : code->ir_list)
@@ -15,53 +18,69 @@ const label_t* label_t::new_label() {
     return &*std::prev(label_pool.cend());
 }
 unique_ptr<hitIR> label_t::ir_goto() const{
-    return std::make_unique<hitIR>(fmt::format("GOTO L{}", id));
+    return make_unique<hitIR>(format("GOTO l{}", id));
 }
 unique_ptr<hitIR> label_t::ir_mark() const{
-    return std::make_unique<hitIR>(fmt::format("LABEL L{} :", id));
+    return make_unique<hitIR>(format("LABEL l{} :", id));
 }
 
 
 unsigned mem_t::total =0;
-mem_t::mem_t(std::string _name, unsigned _size, unsigned _id): id(_id), name(_name), size(_size){}
-std::unique_ptr<hitIR> mem_t::dec(const var_t* derived_var,
-        unsigned _size){
-    mem_pool.push_back(mem_t {derived_var->name, _size, total++});
-    return std::make_unique<hitIR>(fmt::format("DEC {:s} {:d}",derived_var->name, _size));
-}
-const mem_t* mem_t::map_var(std::string _name){
-    for (auto mem = mem_pool.cbegin(); mem!=mem_pool.cend(); ++mem) {
-        if (mem->name==_name) 
-            return &*mem;
-    }
-    return nullptr;
+mem_t::mem_t(unsigned _size, unsigned _id): id(_id), size(_size){}
+std::unique_ptr<hitIR> mem_t::dec(var_t* derived_var){
+    derived_var->ir.mem = new mem_t {derived_var->type->size, total++};
+    return make_unique<hitIR>(format("DEC {:s} {:d}", derived_var->name, derived_var->type->size));
 }
 
 reg_t* reg_t::new_unique(){
-    reg_pool.push_back(reg_t {total++});
-    return &*std::prev(reg_pool.end());
+    return new reg_t(total++);
 }
-    static reg_t* define_var(const var_t* basic_var);
-    hitIR assign(const reg_t* right) const;
-    hitIR assign(int data) const;
-    hitIR assign(float data) const;
-    enum op_t { op_add, op_sub, op_mul, op_div };
-    hitIR is_op_of(op_t op, reg_t* src1, reg_t* src2) const;
 
-    hitIR is_op_of(op_t op, int src1, reg_t* src2) const;
-    hitIR is_op_of(op_t op, float src1, reg_t* src2) const;
-
-    hitIR is_op_of(op_t op, reg_t* src1, int src2) const;
-    hitIR is_op_of(op_t op, reg_t* src1, float src2) const;
-
-    hitIR is_op_of(op_t op, int src1, int src2) const;
-    hitIR is_op_of(op_t op, float src1, float src2) const;
-
-    hitIR if_goto(std::string relop, const reg_t* src2,
-                  const label_t* b_true) const;
-    hitIR if_goto(std::string relop, int src2, const label_t* b_true) const;
-
-    hitIR is_addr_of(const mem_t* src1) const;
-    hitIR load_from(reg_t* src1) const;
-    hitIR store_to(reg_t* src1) const;
-
+std::unique_ptr<hitIR> reg_t::assign(const reg_t* right) const{
+    return make_unique<hitIR>(format("r{} := r{}", id, right->id));
+}
+std::unique_ptr<hitIR> reg_t::assign(int data) const{
+    return make_unique<hitIR>(format("r{} := #{}", id, data));
+}
+std::unique_ptr<hitIR> reg_t::assign(float data) const{
+    return make_unique<hitIR>(format("r{} := #{}", id, data));
+}
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, reg_t* src1, reg_t* src2) const {
+    return make_unique<hitIR>(format("r{} := r{}{}r{}", id, src1->id, op_str, src2->id));
+}
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, int src1, reg_t* src2) const{
+    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2->id));
+}
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, reg_t* src2) const{
+    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2->id));
+}
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, reg_t* src1, int src2) const{
+    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1->id, op_str, src2));
+}
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, reg_t* src1, float src2) const{
+    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1->id, op_str, src2));
+}
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, int src1, int src2) const{
+    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2));
+}
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, float src2) const{
+    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2));
+}
+std::unique_ptr<hitIR> reg_t::if_goto(string relop, const reg_t* src2, const label_t* b_true) const {
+    return make_unique<hitIR>(format("IF r{} {} r{} GOTO l{}", id, relop, src2->id, b_true->id));
+}
+std::unique_ptr<hitIR> reg_t::if_goto(string relop, int src2, const label_t* b_true) const{
+    return make_unique<hitIR>(format("IF r{} {} r{} GOTO l{}", id, relop, src2, b_true->id));
+}
+std::unique_ptr<hitIR> reg_t::is_addr_of(const mem_t* src1) const {
+    return make_unique<hitIR>(format("r{} := &m{}", id, src1->id));
+}
+unique_ptr<hitIR> reg_t::load_from(reg_t* src1) const{
+    return make_unique<hitIR>(format("r{} := *r{}", id, src1->id));
+}
+unique_ptr<hitIR> reg_t::store_to(reg_t* src1) const{
+    return make_unique<hitIR>(format("*r{} := r{}", src1->id, id));
+}
+unique_ptr<hitIR> reg_t::call(string func_name) const {
+    return make_unique<hitIR>(format("r{} := CALL {}", id, func_name));
+}

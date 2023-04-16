@@ -32,41 +32,41 @@
 #define DEF_EXPR_TYPE(e0, e1, e2, e3, ans) ans,
 using std::string;
 using std::vector;
-static hitIR triple_reg(reg_t::op_t op, string op_str, const node_t& node,
+static std::unique_ptr<hitIR> triple_reg(string op_str, const node_t& node,
                         const reg_t* place, const type_t* self_ret) {
-    hitIR code;
+    std::unique_ptr<hitIR> code;
     reg_t* left = reg_t::new_unique();
     type_t *left_type, *right_type;
     reg_t* right = reg_t::new_unique();
-    code.append(Exp_c(node.child(0), left, left_type));
-    code.append(Exp_c(node.child(2), right, right_type));
+    code->append(Exp_c(node.child(0), left, left_type));
+    code->append(Exp_c(node.child(2), right, right_type));
     if (left_type->not_match(right_type) || left_type->not_basic() ||
         right_type->not_basic()) {
-        Error7(node.line, left_type->to_string(), op_str,
-               right_type->to_string());
+        Error7(node.line, left_type->name, op_str,
+               right_type->name);
         self_ret = g_type_tbl.undefined_type();
     } else
         self_ret = left_type;
-    code.append(place->is_op_of(reg_t::op_add, left, right));
+    code->append(place->is_op_of("+", left, right));
     return code;
 }
-hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
+std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
     enum exp_t {
         EXPR_ALL(DEF_EXPR_TYPE) IS_ERROR,
     } exp_type = EXPR_ALL(JUDGE_EXPR) IS_ERROR;
-    hitIR code;
+    std::unique_ptr<hitIR> code;
     switch (exp_type) {
     case Exp_PLUS_Exp:
-        code = triple_reg(reg_t::op_add, "+", node, place, self_ret);
+        code = triple_reg("+", node, place, self_ret);
         break;
     case Exp_MINUS_Exp:
-        code = triple_reg(reg_t::op_sub, "-", node, place, self_ret);
+        code = triple_reg("-", node, place, self_ret);
         break;
     case Exp_STAR_Exp:
-        code = triple_reg(reg_t::op_mul, "*", node, place, self_ret);
+        code = triple_reg("*", node, place, self_ret);
         break;
     case Exp_DIV_Exp:
-        code = triple_reg(reg_t::op_div, "/", node, place, self_ret);
+        code = triple_reg("/", node, place, self_ret);
         break;
     case LP_Exp_RP:
         Exp_c(node.child(1), place, nullptr);
@@ -74,7 +74,7 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
     case Exp_DOT_ID: {
         reg_t* struct_base = reg_t::new_unique();
         const type_t* struct_ret;
-        code.append(Exp_c(node.child(0), struct_base, struct_ret));
+        code->append(Exp_c(node.child(0), struct_base, struct_ret));
         if (struct_ret->is_struct() == false)
             Error13(node.line, node.child(0).to_string());
         reg_t* offset = reg_t::new_unique();
@@ -85,30 +85,30 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
             Error14(node.line, field_name, struct_ret->name);
             break;
         }
-        code.append(offset->assign((int)struct_vars.offset_of(field_name)));
+        code->append(offset->assign((int)struct_vars.offset_of(field_name)));
         self_ret = field_var->type;
         if (self_ret->is_basic()) {
             reg_t* addr = reg_t::new_unique();
-            code.append(addr->is_op_of(reg_t::op_add, struct_base, offset));
-            code.append(place->load_from(addr));
+            code->append(addr->is_op_of("+", struct_base, offset));
+            code->append(place->load_from(addr));
         } else
-            code.append(place->is_op_of(reg_t::op_add, struct_base, offset));
+            code->append(place->is_op_of("+", struct_base, offset));
         break;
     }
     case Exp_LB_Exp_RB: {
         reg_t* array_base = reg_t::new_unique();
         const type_t* sub_ret;
-        code.append(Exp_c(node.child(0), array_base, sub_ret));
+        code->append(Exp_c(node.child(0), array_base, sub_ret));
         if (sub_ret->is_array() == false)
             Error10(node.line, node.child(0).to_string());
         reg_t* index = reg_t::new_unique();
-        code.append(Exp_c(node.child(2), index, sub_ret));
+        code->append(Exp_c(node.child(2), index, sub_ret));
         if (sub_ret->is_int() == false)
             Error12(node.line, node.child(2).to_string());
         reg_t* offset = reg_t::new_unique();
-        code.append(
-            offset->is_op_of(reg_t::op_mul, (int)sub_ret->base_size(), index));
-        code.append(place->is_op_of(reg_t::op_add, array_base, offset));
+        code->append(
+            offset->is_op_of("*", (int)sub_ret->base_size(), index));
+        code->append(place->is_op_of("+", array_base, offset));
         self_ret = g_type_tbl.find(sub_ret->base_name());
         break;
     }
@@ -119,7 +119,7 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
             func = g_func_tbl.undefined_func();
         }
         if (func->param_match(vector<const type_t*>{}))
-            code.append(func->call());
+            code->append(place->call(func->name));
         else
             Error9(node.line, func->to_string(), "");
         self_ret = func->ret_type;
@@ -134,7 +134,7 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
         vector<const type_t*> param_type{};
         code = Args_c(node.child(2), param_type);
         if (func->param_match(param_type))
-            code.append(func->call());
+            code->append(place->call(func->name));
         else {
             using std::accumulate;
             Error9(node.line, func->to_string(),
@@ -154,18 +154,18 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
     case NOT_Exp: {
         const label_t* b_true = label_t::new_label();
         const label_t* b_false = label_t::new_label();
-        code.append(place->assign(0));
-        code.append(Cond_c(node, b_true, b_false));
-        code.append(b_true->ir_mark());
-        code.append(place->assign(1));
-        code.append(b_false->ir_mark());
+        code->append(place->assign(0));
+        code->append(Cond_c(node, b_true, b_false));
+        code->append(b_true->ir_mark());
+        code->append(place->assign(1));
+        code->append(b_false->ir_mark());
         self_ret = g_type_tbl.find("int");
         break;
     }
     case MINUS_Exp: {
         reg_t* tmp1 = reg_t::new_unique();
         code = Exp_c(node.child(1), tmp1, self_ret);
-        code.append(place->is_op_of(reg_t::op_sub, 0, tmp1));
+        code->append(place->is_op_of("-", 0, tmp1));
         break;
     }
     case IS_INT:
@@ -184,12 +184,12 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
         id_var = id_var ? id_var : g_var_tbl.find(id_name);
         if (id_var == nullptr) {
             Error1(node.line, id_name);
-            id_var = g_var_tbl.not_define_var();
+            id_var = g_var_tbl.undefined_var();
         }
         if (id_var->type->is_basic())
-            code.append(place->assign(id_var->ir.reg));
+            code->append(place->assign(id_var->ir.reg));
         else
-            code.append(place->is_addr_of(id_var->ir.mem));
+            code->append(place->is_addr_of(id_var->ir.mem));
         self_ret = id_var->type;
         break;
     }
@@ -204,59 +204,59 @@ hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* self_ret) {
     return code;
 }
 
-hitIR Args_c(const node_t& node, vector<const type_t*>& param_list) {
-    hitIR code;
+std::unique_ptr<hitIR> Args_c(const node_t& node, vector<const type_t*>& param_list) {
+    std::unique_ptr<hitIR> code;
     reg_t* tmp1 = reg_t::new_unique();
     const type_t* self_ret;
-    code.append(Exp_c(node.child(0), tmp1, self_ret));
+    code->append(Exp_c(node.child(0), tmp1, self_ret));
     param_list.push_back(self_ret);
     if (node.cld_nr > 1)
-        code.append(Args_c(node.child(2), param_list));
+        code->append(Args_c(node.child(2), param_list));
     return code;
 }
 
-hitIR Cond_c(const node_t& node, const label_t* b_true,
+std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true,
              const label_t* b_false) {
-    hitIR code;
+    std::unique_ptr<hitIR> code;
     switch (node.child(1).synt_sym) {
     case RELOP: {
         reg_t* left = reg_t::new_unique();
         reg_t* right = reg_t::new_unique();
         type_t *left_type, *right_type;
-        code.append(Exp_c(node.child(0), left, left_type));
-        code.append(Exp_c(node.child(2), right, right_type));
+        code->append(Exp_c(node.child(0), left, left_type));
+        code->append(Exp_c(node.child(2), right, right_type));
         if (left_type->not_match(right_type) || !left_type->is_int() ||
             !right_type->is_int()) {
             Error7(node.line, left_type->name, node.child(1).to_string(),
                    right_type->name);
         }
-        code.append(left->if_goto(node.child(1).attrib.id_lit, right, b_true));
-        code.append(b_false->ir_goto());
+        code->append(left->if_goto(node.child(1).attrib.id_lit, right, b_true));
+        code->append(b_false->ir_goto());
         break;
     }
     case Exp:
-        code.append(Cond_c(node, b_false, b_true));
+        code->append(Cond_c(node, b_false, b_true));
         break;
     case AND: {
         const label_t* tmpl = label_t::new_label();
-        code.append(Cond_c(node.child(0), tmpl, b_false));
-        code.append(tmpl->ir_mark());
-        code.append(Cond_c(node.child(2), b_true, b_false));
+        code->append(Cond_c(node.child(0), tmpl, b_false));
+        code->append(tmpl->ir_mark());
+        code->append(Cond_c(node.child(2), b_true, b_false));
         break;
     }
     case OR: {
         const label_t* tmpl = label_t::new_label();
-        code.append(Cond_c(node.child(0), b_true, tmpl));
-        code.append(tmpl->ir_mark());
-        code.append(Cond_c(node.child(2), b_true, b_false));
+        code->append(Cond_c(node.child(0), b_true, tmpl));
+        code->append(tmpl->ir_mark());
+        code->append(Cond_c(node.child(2), b_true, b_false));
         break;
     }
     default: {
         const reg_t* tmp1 = reg_t::new_unique();
         const type_t* ret_type;
-        code.append(Exp_c(node, tmp1, ret_type));
-        code.append(tmp1->if_goto("!=", 0, b_true));
-        code.append(b_false->ir_mark());
+        code->append(Exp_c(node, tmp1, ret_type));
+        code->append(tmp1->if_goto("!=", 0, b_true));
+        code->append(b_false->ir_mark());
         fmt::print(fmt::fg(fmt::color::yellow), "Cond_c encount default\n");
         break;
     }

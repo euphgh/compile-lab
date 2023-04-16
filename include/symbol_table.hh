@@ -23,46 +23,38 @@ class hitIR {
 class reg_t {
     static unsigned total;
     unsigned id;
-    static std::vector<reg_t> reg_pool;
   public:
     reg_t(unsigned _id) : id(_id) {}
     static reg_t* new_unique();
     static reg_t* define_var(const var_t* basic_var);
-    hitIR assign(const reg_t* right) const;
-    hitIR assign(int data) const;
-    hitIR assign(float data) const;
-    enum op_t { op_add, op_sub, op_mul, op_div };
-    hitIR is_op_of(op_t op, reg_t* src1, reg_t* src2) const;
-
-    hitIR is_op_of(op_t op, int src1, reg_t* src2) const;
-    hitIR is_op_of(op_t op, float src1, reg_t* src2) const;
-
-    hitIR is_op_of(op_t op, reg_t* src1, int src2) const;
-    hitIR is_op_of(op_t op, reg_t* src1, float src2) const;
-
-    hitIR is_op_of(op_t op, int src1, int src2) const;
-    hitIR is_op_of(op_t op, float src1, float src2) const;
-
-    hitIR if_goto(std::string relop, const reg_t* src2,
-                  const label_t* b_true) const;
-    hitIR if_goto(std::string relop, int src2, const label_t* b_true) const;
-
-    hitIR is_addr_of(const mem_t* src1) const;
-    hitIR load_from(reg_t* src1) const;
-    hitIR store_to(reg_t* src1) const;
+    std::unique_ptr<hitIR> assign(const reg_t* right) const;
+    std::unique_ptr<hitIR> assign(int data) const;
+    std::unique_ptr<hitIR> assign(float data) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1, reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1, reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, float src1, reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1, int src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1, float src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1, int src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, float src1, float src2) const;
+    std::unique_ptr<hitIR> if_goto(std::string relop, const reg_t* src2, const label_t* b_true) const;
+    std::unique_ptr<hitIR> if_goto(std::string relop, int src2, const label_t* b_true) const;
+    std::unique_ptr<hitIR> is_addr_of(const mem_t* src1) const;
+    std::unique_ptr<hitIR> load_from(reg_t* src1) const;
+    std::unique_ptr<hitIR> store_to(reg_t* src1) const;
+    std::unique_ptr<hitIR> call(std::string func_name) const;
 };
+
 class mem_t {
     static std::vector<mem_t> mem_pool;
     static unsigned total;
   public:
-    static std::unique_ptr<hitIR> dec(const var_t* derived_var,
-                                      unsigned _size); // on stack not heap
-    static const mem_t* map_var(std::string _name);
-    mem_t(std::string _name, unsigned _size, unsigned _id);
+    static std::unique_ptr<hitIR> dec(var_t* derived_var); // on stack not heap
+    mem_t(unsigned _size, unsigned _id);
     unsigned id;
-    std::string name;
     unsigned size;
 };
+
 class label_t {
     static unsigned total;
     static std::vector<label_t> label_pool;
@@ -170,8 +162,9 @@ extern func_table g_func_tbl;
 struct var_t {
     std::string name;
     const type_t* type;
-    // if basic type mem=null, reg point to instance
-    // else reg=null, mem point to instance
+    // if basic type, reg point to instance
+    // else if struct or array mem point to instance
+    // else is non
     union {
         const reg_t* reg;
         const mem_t* mem;
@@ -191,7 +184,7 @@ struct compst_node {
     inline compst_node* up() const { return parent; }
     inline compst_node* child(unsigned num) const { return sub.at(num); }
     inline const std::vector<compst_node*>& children() const { return sub; }
-    inline const var_t* find(std::string name) { return vars.find(name); }
+    inline const var_t* find(std::string name) const { return vars.find(name); }
     void log() const;
     void recurse_print(unsigned level) const;
 };
@@ -206,7 +199,6 @@ class func_t {
            compst_node* _compst_tree = nullptr);
     const type_t* ret_type;
     bool param_match(const std::vector<const type_t*> param_type_list) const;
-    hitIR call() const; // TODO:
     std::string to_string() const;
     const var_t* find_param(std::string id) const;
 };

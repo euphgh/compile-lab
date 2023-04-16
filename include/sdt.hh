@@ -3,6 +3,7 @@
 #include "ast.hh"
 #include "symbol_table.hh"
 #include <string>
+#include <memory>
 class mem_t;
 extern func_t* func_env;
 extern compst_node* compst_env;
@@ -21,11 +22,11 @@ extern env_t def_env;
 //////////////////////////////////////////////////////////////////////////////
 /** Program generate hitIR of all file
  */
-hitIR Program_c(const node_t& root);
+std::unique_ptr<hitIR> Program_c(const node_t& root);
 
 /** ExtDecList merge all ExtDef IR into one
  */
-hitIR ExtDefList_c(const node_t& node);
+std::unique_ptr<hitIR> ExtDefList_c(const node_t& node);
 
 /* ExtDef has three option
  * 1. check struct name when def variable
@@ -35,7 +36,7 @@ hitIR ExtDefList_c(const node_t& node);
  * 
  * Error17: struct id is not def
  * */
-hitIR ExtDef_c(const node_t& node);
+std::unique_ptr<hitIR> ExtDef_c(const node_t& node);
 
 /* ExtDecList recieve a inh base type from ExtDef
  * pass inherit type to VarDec and ExtDecList
@@ -104,11 +105,11 @@ var_t ParamDec_c(const node_t& node);
  * 2. parser DefList all var into new var table
  * 3. return IR of StmtList
  */
-hitIR CompSt_c(const node_t& node);
+std::unique_ptr<hitIR> CompSt_c(const node_t& node);
 
 /** return all Stmt merged
  */
-hitIR StmtList_c(const node_t& node);
+std::unique_ptr<hitIR> StmtList_c(const node_t& node);
 
 /** has 4 option, see reference page 83
  * 1. new CompSt, set compst env
@@ -117,7 +118,7 @@ hitIR StmtList_c(const node_t& node);
  * 4. generate while code
  * Error08: return type not match
  */
-hitIR Stmt_c(const node_t& node);
+std::unique_ptr<hitIR> Stmt_c(const node_t& node);
 
 //////////////////////////////////////////////////////////////////////////////
 /// Local Definitions
@@ -125,19 +126,19 @@ hitIR Stmt_c(const node_t& node);
 
 /** parse all def
  */
-hitIR DefList_c(const node_t& node);
+std::unique_ptr<hitIR> DefList_c(const node_t& node);
 
 /** get base type from Specifier
  * DecList inherit base type from Specifier and def new type
  * Error17: struct id is not def
  */
-hitIR Def_c(const node_t& node);
+std::unique_ptr<hitIR> Def_c(const node_t& node);
 
 /** parse all Dec with base type
  *  merge all Dec Code
  *  only to distinguish two case
  */
-hitIR DecList_c(const node_t& node, const type_t* inh_type);
+std::unique_ptr<hitIR> DecList_c(const node_t& node, const type_t* inh_type);
 
 /** Dec_c has 2 option which distinguished by def_env
  *
@@ -148,7 +149,7 @@ hitIR DecList_c(const node_t& node, const type_t* inh_type);
  * insert var returned by VarDec into struct var table
  * Error15: var name nis not same with struct field, and not init
  */
-hitIR Dec_c(const node_t& node, const type_t* inh_type);
+std::unique_ptr<hitIR> Dec_c(const node_t& node, const type_t* inh_type);
 
 //////////////////////////////////////////////////////////////////////////////
 /// Expressions
@@ -169,13 +170,13 @@ hitIR Dec_c(const node_t& node, const type_t* inh_type);
  * Error13: only struct var has Dot
  * Error14: struct var field name is in struct var table
  */
-hitIR Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type);
+std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type);
 
 /** generate code to eval expr and record repond reg
  */
-hitIR Args_c(const node_t& node, std::vector<const type_t*>& param_list);
+std::unique_ptr<hitIR> Args_c(const node_t& node, std::vector<const type_t*>& param_list);
 
 /** generate goto code
  */
-hitIR Cond_c(const node_t& node, const label_t* b_true, const label_t* b_false);
+std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true, const label_t* b_false);
 #endif

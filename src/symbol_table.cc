@@ -1,5 +1,6 @@
 #include "symbol_table.hh"
 #include <fmt/core.h>
+#include <memory>
 #include <sstream>
 #include <string>
 #include "debug.h"
@@ -84,8 +85,6 @@ bool func_t::param_match(const std::vector<const type_t*> param_type_list) const
 
 func_t::func_t(string _name, var_table _param, compst_node* _compst_tree): 
 name(_name), params(_param), compst_tree(_compst_tree) {}
-
-hitIR func_t::call() const{ TODO(); }
 
 std::string func_t::to_string() const{
     stringstream buffer(name);

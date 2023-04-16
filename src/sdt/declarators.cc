@@ -2,7 +2,6 @@
 #include "debug.h"
 #include <fmt/core.h>
 #include <deque>
-
 using std::string;
 const var_t VarDec_c(node_t& node, const type_t* inh_type) {
     if (node.synt_sym == ID) {
