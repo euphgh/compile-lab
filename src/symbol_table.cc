@@ -29,13 +29,13 @@ void var_table::insert(const var_t item) {
     offset_list.push_back(start_offset);
     start_offset += item.type->size;
 }
-var_table::var_table() : start_offset(0) {
-    undefined = new var_t{
-        .name = "not define var",
-        .type = nullptr,
-        .addr = nullptr,
-    };
-}
+var_table::var_table()
+    : start_offset(0), undefined(var_t{
+                           .name = "not define var",
+                           .type = g_type_tbl.undefined_type(),
+                           .addr = new mem_t(0, ~0),
+                       }) {}
+
 bool var_table::insert_check(var_t item) {
     bool exist = find(item.name) == nullptr;
     if (exist == false)
@@ -53,6 +53,7 @@ unsigned var_table::offset_of(std::string name) const {
             return offset_list[i];
     return ~0;
 };
+
 void var_table::log(unsigned indent) {
     for (auto var : var_list) {
         for (size_t i = 0; i < indent; i++)
@@ -61,18 +62,28 @@ void var_table::log(unsigned indent) {
     }
 }
 
-type_table::type_table() : undefined(new type_t{"undefined type"}) {
-    type_list.push_back( type_t {"int",0,4});
-    type_list.push_back( type_t {"float",0,4});
+type_table::type_table() : undefined(type_t{"undefined type"}) {
+    type_list.push_back(type_t{"int", 0, 4});
+    type_list.push_back(type_t{"float", 0, 4});
 }
+const type_t* type_table::undefined_type() const { return &undefined; }
+
+type_t::type_t(std::string _name, unsigned _upper, unsigned _size)
+    : name(_name), sub(), upper(_upper), size(_size) {}
 type_t::type_t(const type_t* sub_type, unsigned _unpper)
     : name(sub_type->name + "[" + std::to_string(_unpper) + "]"),
       sub(var_table{}), upper(_unpper), size((_unpper + 1) * sub_type->size) {}
 type_t::type_t(std::string id, var_table _sub)
     : name(id), sub(_sub), upper(0), size(_sub.size()) {}
-
 bool type_t::not_match(const type_t* other) const {
-    return name == other->name;
+    return name != other->name && this->name != "undefined type" &&
+           other->name != "undefined type";
+}
+string type_t::base_name() const {
+    return upper == 0 ? name : name.substr(0, name.find_last_of('['));
+}
+unsigned type_t::base_size() const {
+    return upper == 0 ? size : size / (upper + 1);
 }
 
 const type_t* type_table::find(std::string id) const {
@@ -135,7 +146,7 @@ compst_node* compst_node::new_root(var_table root_vars) {
     return new compst_node(root_vars);
 }
 
-compst_node* compst_node::add_child(var_table child_vars){
+compst_node* compst_node::add_child(var_table child_vars) {
     sub.push_back(new compst_node{child_vars});
     return *std::prev(sub.end());
 }

@@ -2,10 +2,14 @@
 #include "debug.h"
 #include "sdt.hh"
 #include <memory>
+#include <fmt/core.h>
 
 func_t* func_env = nullptr;
 compst_node* compst_env = nullptr;
-env_t def_env;
+env_t def_env = {
+    .def_scope = env_t::NONE_ENV,
+    .def_table = nullptr,
+};
 
 std::unique_ptr<hitIR> CompSt_c(const node_t& node) {
     def_env.def_table = &compst_env->vars;
@@ -29,7 +33,8 @@ std::unique_ptr<hitIR> Stmt_c(const node_t& node) {
     auto code = std::make_unique<hitIR>();
     switch (node.child(0).synt_sym) {
     case Exp: {
-        code->append(Exp_c(node.child(0), nullptr, nullptr));
+        const type_t* ret_type;
+        code->append(Exp_c(node.child(0), reg_t::new_unique(), ret_type));
         break;
     }
     case CompSt: {

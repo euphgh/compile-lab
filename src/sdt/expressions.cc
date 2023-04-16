@@ -37,13 +37,14 @@ using std::vector;
 static bool exp_is_addr; // Exp_LB_Exp_RB, Exp_DOT_ID
 static std::unique_ptr<hitIR> triple_reg(string op_str, const node_t& node,
                                          const reg_t* place,
-                                         const type_t* self_ret) {
+                                         const type_t*& self_ret) {
     auto code = std::make_unique<hitIR>();
     reg_t* left = reg_t::new_unique();
-    type_t *left_type, *right_type;
+    const type_t *left_type, *right_type;
     reg_t* right = reg_t::new_unique();
     code->append(Exp_c(node.child(0), left, left_type));
     code->append(Exp_c(node.child(2), right, right_type));
+    // raise(SIGTRAP);
     if (left_type->not_match(right_type) || left_type->not_basic() ||
         right_type->not_basic()) {
         Error7(node.line, left_type->name, op_str, right_type->name);
@@ -55,18 +56,21 @@ static std::unique_ptr<hitIR> triple_reg(string op_str, const node_t& node,
     return code;
 }
 std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
-                             const type_t* self_ret) {
+                             const type_t*& self_ret) {
     enum exp_t {
         EXPR_ALL(DEF_EXPR_TYPE) IS_ERROR,
     } exp_type = EXPR_ALL(JUDGE_EXPR) IS_ERROR;
     std::unique_ptr<hitIR> code = std::make_unique<hitIR>();
     switch (exp_type) {
     case Exp_ASSIGNOP_Exp: {
+        // left is must left value
         const reg_t* left_reg = reg_t::new_unique();
         const type_t *left_type, *right_type;
         code->append(Exp_c(node.child(0), left_reg, left_type));
         if (exp_is_addr == false)
             Error6(node.line);
+
+        // right can be left value
         const reg_t* right_reg = reg_t::new_unique();
         code->append(Exp_c(node.child(2), right_reg, right_type));
         if (left_type->not_match(right_type))
@@ -77,6 +81,8 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
             code->append(right_value->load_from(right_reg));
         } else
             right_value = right_reg;
+
+        // use store instruction translate assign 
         code->append(right_value->store_to(left_reg));
         code->append(right_value->assign(place));
         exp_is_addr = false;
@@ -95,7 +101,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         code = triple_reg("/", node, place, self_ret);
         break;
     case LP_Exp_RP:
-        Exp_c(node.child(1), place, nullptr);
+        Exp_c(node.child(1), place, self_ret);
         // exp_is_addr is inherit
         break;
     case Exp_DOT_ID: {
@@ -204,7 +210,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         break;
     }
     case IS_INT:
-        code = place->assign(node.attrib.cnt_int);
+        code = place->assign(node.child(0).attrib.cnt_int);
         self_ret = g_type_tbl.find("int");
         break;
     case IS_ID: {
@@ -227,7 +233,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         break;
     }
     case IS_FLOAT:
-        code = place->assign(node.attrib.cnt_flt);
+        code = place->assign(node.child(0).attrib.cnt_flt);
         self_ret = g_type_tbl.find("float");
         exp_is_addr = false;
         break;
@@ -257,7 +263,7 @@ std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true,
     case RELOP: {
         reg_t* left = reg_t::new_unique();
         reg_t* right = reg_t::new_unique();
-        type_t *left_type, *right_type;
+        const type_t *left_type, *right_type;
         code->append(Exp_c(node.child(0), left, left_type));
         code->append(Exp_c(node.child(2), right, right_type));
         if (left_type->not_match(right_type) || !left_type->is_int() ||

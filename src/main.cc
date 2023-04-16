@@ -5,6 +5,7 @@ extern "C" {
     bool has_lexical_error;
     bool has_syntax_error;
 }
+bool has_semantic_error;
 #include "ast.hh"
 #include <sdt.hh>
 #include <fmt/color.h>
@@ -24,10 +25,14 @@ int main(int argc, char** argv){
     }
     has_syntax_error = false;
     has_lexical_error = false;
+    has_semantic_error = false;
     yyrestart(f);
     yyparse();
-    if (!has_lexical_error && !has_syntax_error) 
+    if (!has_lexical_error && !has_syntax_error) {
         print_from_root();
-    Program_c(node_t::get_node(node_t::root_idx));
+        auto ir = Program_c(node_t::get_node(node_t::root_idx));
+        // if (has_semantic_error==false)
+            fmt::print("{}", ir->to_string());
+    }
     return 0;
 }

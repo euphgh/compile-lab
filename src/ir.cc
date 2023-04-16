@@ -2,15 +2,23 @@
 #include <fmt/core.h>
 #include <iterator>
 #include <memory>
+#include <sstream>
 using std::unique_ptr;
 using std::make_unique;
 using fmt::format;
 using std::string;
+using std::stringstream;
 
 hitIR* hitIR::append(std::unique_ptr<hitIR> code) {
     for (auto ir : code->ir_list)
         ir_list.push_back(ir);
     return this;
+}
+std::string hitIR::to_string(){
+    stringstream buffer;
+    for (auto inst : this->ir_list)
+        buffer << inst << "\n";
+    return buffer.str();
 }
 const label_t* label_t::new_label() {
     label_pool.push_back(label_t {total++});
@@ -25,13 +33,16 @@ unique_ptr<hitIR> label_t::ir_mark() const{
 
 mem_t::mem_t(unsigned _size, unsigned _id): id(_id), size(_size){}
 std::unique_ptr<hitIR> mem_t::dec(var_t* derived_var){
-    derived_var->addr = new mem_t {derived_var->type->size, total++};
-    return make_unique<hitIR>(format("DEC {:s} {:d}", derived_var->name, derived_var->type->size));
+    derived_var->addr = new mem_t {derived_var->type->size, total};
+    return make_unique<hitIR>(format("DEC m{:d} {:d}", total++, derived_var->type->size));
 }
 
 reg_t* reg_t::new_unique(){
     return new reg_t(total++);
 }
+
+reg_t useless_reg(~0);
+reg_t* reg_t::useless(){ return &useless_reg; }
 
 std::unique_ptr<hitIR> reg_t::assign(const reg_t* right) const{
     return make_unique<hitIR>(format("r{} := r{}", id, right->id));

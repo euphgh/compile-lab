@@ -2,6 +2,7 @@
 #include "debug.h"
 #include "sdt.hh"
 #include <memory>
+#include <fmt/core.h>
 using std::make_unique;
 using std::unique_ptr;
 

@@ -5,7 +5,7 @@
 CC = gcc
 FLEX = flex
 BISON = bison
-LOGOUT ?= 1
+LOGOUT ?= 0
 CFLAGS = -std=gnu2x -g -DLOGOUT=$(LOGOUT) -I./include
 CXXFLAGS = -std=gnu++20 -g -DLOGOUT=$(LOGOUT) -I./include
 

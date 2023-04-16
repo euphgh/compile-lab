@@ -1,9 +1,9 @@
 #include "ast.h"
-#include <fmt/core.h>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
+#include <fmt/core.h>
 struct var_t;
 struct type_t;
 class func_t;
@@ -18,6 +18,7 @@ class hitIR {
     hitIR(std::string inst) : ir_list(1, inst) {}
     hitIR() {}
     hitIR* append(std::unique_ptr<hitIR> code);
+    std::string to_string();
 };
 
 class reg_t {
@@ -27,6 +28,7 @@ class reg_t {
   public:
     reg_t(unsigned _id) : id(_id) {}
     static reg_t* new_unique();
+    static reg_t* useless();
     static reg_t* define_var(const var_t* basic_var);
     std::unique_ptr<hitIR> assign(const reg_t* right) const;
     std::unique_ptr<hitIR> assign(int data) const;
@@ -55,6 +57,7 @@ class reg_t {
     std::unique_ptr<hitIR> call(std::string func_name) const;
     std::unique_ptr<hitIR> ret() const;
 };
+extern reg_t useless_reg;
 
 class mem_t {
     static std::vector<mem_t> mem_pool;
@@ -79,10 +82,19 @@ class label_t {
     std::unique_ptr<hitIR> ir_mark() const;
 };
 
+struct var_t {
+    std::string name;
+    const type_t* type;
+    // if basic type, reg point to instance
+    // else if struct or array mem point to instance
+    // else is non
+    const mem_t* addr;
+};
+
 class var_table {
     unsigned start_offset;
     std::vector<unsigned> offset_list;
-    const var_t* undefined;
+    const var_t undefined;
 
   public:
     std::vector<var_t> var_list;
@@ -95,7 +107,7 @@ class var_table {
     /// only insert and return point
     const var_t* insert_ret(var_t item);
     unsigned offset_of(std::string name) const;
-    inline const var_t* undefined_var() const { return undefined; }
+    inline const var_t* undefined_var() const { return &undefined; }
     inline unsigned size() { return start_offset; }
     inline bool empty() const { return offset_list.size() == 1; }
     void log(unsigned indent);
@@ -128,29 +140,24 @@ class type_t {
     unsigned upper;
     unsigned size;
 
-    type_t(std::string _name = "", unsigned _upper = 0, unsigned _size = 0)
-        : name(_name), sub(), upper(_upper), size(_size) {}
+    type_t(std::string _name = "", unsigned _upper = 0, unsigned _size = 0);
     type_t(const type_t* sub_type, unsigned _unpper); // array
     type_t(std::string id, var_table _sub);
-    inline bool is_int() const { return name == "int"; }
-    inline bool is_float() const { return name == "float"; }
-    inline bool is_basic() const { return is_int() || is_float(); }
+    inline bool is_int() const    { return name == "int"; }
+    inline bool is_float() const  { return name == "float"; }
+    inline bool is_basic() const  { return is_int() || is_float(); }
     inline bool not_basic() const { return is_basic() == false; }
-    inline bool is_array() const { return upper > 0; }
+    inline bool is_array() const  { return upper > 0; }
     inline bool is_struct() const { return sub.empty() == false; }
-    inline unsigned base_size() const {
-        return upper == 0 ? size : size / (upper + 1);
-    }
-    inline std::string base_name() const {
-        return upper == 0 ? name : name.substr(0, name.find_last_of('['));
-    }
+    unsigned base_size() const;
+    std::string base_name() const;
     // TODO: not impliment
     bool not_match(const type_t* other) const;
 };
 
 class type_table {
     std::vector<type_t> type_list;
-    const type_t* undefined;
+    const type_t undefined;
     static unsigned total_anonymous;
 
   public:
@@ -159,7 +166,7 @@ class type_table {
     std::string unique_type_id();
     void insert(type_t item);
     const type_t* insert_ret(type_t item);
-    inline const type_t* undefined_type() const { return undefined; }
+    const type_t* undefined_type() const;
 };
 extern type_table g_type_tbl;
 
@@ -175,15 +182,6 @@ class func_table {
     inline const func_t* undefined_func() const { return undefined; }
 };
 extern func_table g_func_tbl;
-
-struct var_t {
-    std::string name;
-    const type_t* type;
-    // if basic type, reg point to instance
-    // else if struct or array mem point to instance
-    // else is non
-    const mem_t* addr;
-};
 
 struct compst_node {
     var_table vars;
@@ -239,12 +237,15 @@ class func_t {
     _(16, "Duplicated name \"{}\"")                                            \
     _(17, "Undefined structure \"{}\"")
 
-#define __def_macro_error__(num, fmtstr)                                       \
+#define __imp_macro_error__(num, fmtstr)                                       \
     template <typename... param>                                               \
     void Error##num(unsigned line, param&&... params) {                        \
+        extern bool has_semantic_error;                                         \
+        has_semantic_error = true;\
         std::string msg =                                                      \
             fmt::vformat(fmtstr, fmt::make_format_args(params...));            \
-        fmt::print("Error type {} at line {}: {:s}", num, line, msg);          \
+        fmt::print(stderr, "Error type {} at line {}: {:s}\n", num, line,      \
+                   msg);                                                       \
     }
 
-E_TABLE(__def_macro_error__)
+E_TABLE(__imp_macro_error__)

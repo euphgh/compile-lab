@@ -170,7 +170,7 @@ std::unique_ptr<hitIR> Dec_c(const node_t& node, const type_t* inh_type);
  * Error13: only struct var has Dot
  * Error14: struct var field name is in struct var table
  */
-std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place, const type_t* ret_type);
+std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place, const type_t*& ret_type);
 
 /** generate code to eval expr and record repond reg
  */

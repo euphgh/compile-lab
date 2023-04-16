@@ -1,7 +1,7 @@
 #include "debug.h"
 #include "sdt.hh"
 #include <memory>
-
+#include <fmt/core.h>
 std::unique_ptr<hitIR> DefList_c(const node_t& node) {
     std::unique_ptr<hitIR> code = Def_c(node.child(0));
     if (node.cld_nr > 1)
@@ -40,17 +40,19 @@ std::unique_ptr<hitIR> Dec_c(const node_t& node, const type_t* inh_type) {
         }
         // gen init code
         if (node.cld_nr > 1){
-            type_t ret_type {};
-            code = Exp_c(node.child(2), reg_t::new_unique(), &ret_type);
-            if (inh_type->not_match(&ret_type))
-                Error5(node.line, inh_type->name,ret_type.name);
+            const type_t* ret_type {};
+            code->append(Exp_c(node.child(2), reg_t::new_unique(), ret_type));
+            if (inh_type->not_match(ret_type))
+                Error5(node.line, inh_type->name,ret_type->name);
         }
+        break;
     }
     case env_t::STRUCT_ENV: {
         if (node.cld_nr>1 || def_tlb->find(var.name)) {
             Error15(node.line, var.name);
         } else
             def_tlb->insert(var);
+        break;
     }
     case env_t::NONE_ENV: 
         Assert(0, "not expect Dec when def_env==NONE_ENV");
