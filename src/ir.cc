@@ -28,7 +28,7 @@ unique_ptr<hitIR> label_t::ir_mark() const{
 unsigned mem_t::total =0;
 mem_t::mem_t(unsigned _size, unsigned _id): id(_id), size(_size){}
 std::unique_ptr<hitIR> mem_t::dec(var_t* derived_var){
-    derived_var->ir.mem = new mem_t {derived_var->type->size, total++};
+    derived_var->addr = new mem_t {derived_var->type->size, total++};
     return make_unique<hitIR>(format("DEC {:s} {:d}", derived_var->name, derived_var->type->size));
 }
 
@@ -75,12 +75,15 @@ std::unique_ptr<hitIR> reg_t::if_goto(string relop, int src2, const label_t* b_t
 std::unique_ptr<hitIR> reg_t::is_addr_of(const mem_t* src1) const {
     return make_unique<hitIR>(format("r{} := &m{}", id, src1->id));
 }
-unique_ptr<hitIR> reg_t::load_from(reg_t* src1) const{
+unique_ptr<hitIR> reg_t::load_from(const reg_t* src1) const{
     return make_unique<hitIR>(format("r{} := *r{}", id, src1->id));
 }
-unique_ptr<hitIR> reg_t::store_to(reg_t* src1) const{
+unique_ptr<hitIR> reg_t::store_to(const reg_t* src1) const{
     return make_unique<hitIR>(format("*r{} := r{}", src1->id, id));
 }
 unique_ptr<hitIR> reg_t::call(string func_name) const {
     return make_unique<hitIR>(format("r{} := CALL {}", id, func_name));
+}
+unique_ptr<hitIR> reg_t::ret() const{
+    return make_unique<hitIR>(format("RETURN r{}", id));
 }

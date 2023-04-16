@@ -40,9 +40,10 @@ class reg_t {
     std::unique_ptr<hitIR> if_goto(std::string relop, const reg_t* src2, const label_t* b_true) const;
     std::unique_ptr<hitIR> if_goto(std::string relop, int src2, const label_t* b_true) const;
     std::unique_ptr<hitIR> is_addr_of(const mem_t* src1) const;
-    std::unique_ptr<hitIR> load_from(reg_t* src1) const;
-    std::unique_ptr<hitIR> store_to(reg_t* src1) const;
+    std::unique_ptr<hitIR> load_from(const reg_t* src1) const;
+    std::unique_ptr<hitIR> store_to(const reg_t* src1) const;
     std::unique_ptr<hitIR> call(std::string func_name) const;
+    std::unique_ptr<hitIR> ret() const;
 };
 
 class mem_t {
@@ -138,11 +139,14 @@ class type_t {
 class type_table {
     std::vector<type_t> type_list;
     const type_t* undefined;
+    static unsigned total_anonymous;
 
   public:
     type_table();
     const type_t* find(std::string id) const;
+    std::string unique_type_id();
     void insert(type_t item);
+    const type_t* insert_ret(type_t item);
     inline const type_t* undefined_type() const { return undefined; }
 };
 extern type_table g_type_tbl;
@@ -155,6 +159,7 @@ class func_table {
     func_table();
     const func_t* find(std::string id) const;
     void insert(func_t item);
+    func_t* insert_ret(func_t item);
     const func_t* undefined_func() const;
 };
 extern func_table g_func_tbl;
@@ -165,10 +170,7 @@ struct var_t {
     // if basic type, reg point to instance
     // else if struct or array mem point to instance
     // else is non
-    union {
-        const reg_t* reg;
-        const mem_t* mem;
-    } ir;
+    const mem_t* addr;
 };
 
 struct compst_node {
@@ -191,16 +193,17 @@ struct compst_node {
 
 class func_t {
     const var_table params;
-    compst_node* compst_tree;
 
   public:
     std::string name;
-    func_t(std::string _name = "", var_table _param = var_table{},
-           compst_node* _compst_tree = nullptr);
+    compst_node* compst_tree;
     const type_t* ret_type;
+    func_t(std::string _name = "", const type_t* _ret_type = g_type_tbl.undefined_type(), var_table _param = var_table{},
+           compst_node* _compst_tree = nullptr){}
     bool param_match(const std::vector<const type_t*> param_type_list) const;
     std::string to_string() const;
     const var_t* find_param(std::string id) const;
+    std::unique_ptr<hitIR> def_func() const;
 };
 
 #define E_TABLE(_)                                                             \

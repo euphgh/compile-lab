@@ -6,10 +6,10 @@ CC = gcc
 FLEX = flex
 BISON = bison
 LOGOUT ?= 0
-CFLAGS = -std=gnu11 -g -DLOGOUT=$(LOGOUT)
-CXXFLAGS = -std=gnu++11 -g -DLOGOUT=$(LOGOUT)
+CFLAGS = -std=gnu2x -g -DLOGOUT=$(LOGOUT) -I./include
+CXXFLAGS = -std=gnu++20 -g -DLOGOUT=$(LOGOUT) -I./include
 
-# 编译目标：src目录下的所有.c文件
+# 编译目标：src目录下的所有.c 和 .cc文件
 CFILES = $(shell find ./ -name "*.c")
 CXXFILES = $(shell find ./ -name "*.cc")
 OBJS += $(CFILES:.c=.o)
@@ -20,10 +20,12 @@ LFC = $(shell find ./ -name "*.l" | sed s/[^/]*\\.l/lex.yy.c/)
 YFC = $(shell find ./ -name "*.y" | sed s/[^/]*\\.y/syntax.tab.c/)
 LFO = $(LFC:.c=.o)
 YFO = $(YFC:.c=.o)
-BINARY = ./parser
+HEADER += $(shell find ./include -name "*.hh")
+HEADER += $(shell find ./include -name "*.h")
+BINARY = cc
 
-$(BINARY): syntax $(filter-out $(LFO),$(OBJS))
-	$(CXX) -o parser $(filter-out $(LFO),$(OBJS)) -lfl -ly -lfmt
+$(BINARY): syntax $(filter-out $(LFO),$(OBJS)) $(HEADER)
+	$(CXX) -o $(BINARY) $(filter-out $(LFO),$(OBJS)) -lfl -ly -lfmt
 
 syntax: lexical syntax-c
 	$(CC) -c -g $(YFC) -o $(YFO) $(CFLAGS)
@@ -46,6 +48,6 @@ gdb: $(BINARY)
 test: $(BINARY)
 	$(EXEC_CL)
 clean:
-	rm -f parser lex.yy.c syntax.tab.c syntax.tab.h syntax.output
+	rm -f ./$(BINARY) ./lex.yy.c ./syntax.tab.c ./syntax.tab.h ./syntax.output
 	rm -f $(OBJS) $(OBJS:.o=.d)
 	rm -f $(LFC) $(YFC) $(YFC:.c=.h)

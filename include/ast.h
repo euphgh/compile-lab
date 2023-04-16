@@ -52,13 +52,13 @@
     _(WHILE, T_SET, "while") \
     _(TYPE, T_SET, "type") \
     _(RELOP, T_SET, "RELOP") \
-    _(ID, T_SET, "ID") \
-    _(NON, T_SET, "NON")
+    _(ID, T_SET, "ID")
 /*}}}*/
 
 typedef enum{
 #define synt_t_enum(x, is_ter_sym, str) x,
     AllSyntaxSymbol(synt_t_enum)
+    NON,
 } synt_t;
 
 typedef union {

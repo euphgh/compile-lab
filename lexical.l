@@ -1,7 +1,7 @@
 %{
 #include "syntax.tab.h"
-#include "include/AST.h"
-#include "include/debug.h"
+#include "ast.h"
+#include "debug.h"
 #include <stdbool.h>
 extern bool has_lexical_error;
 static int dec_v(char* text) {/*{{{*/

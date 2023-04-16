@@ -1,7 +1,7 @@
 %{
 #include "lex.yy.c"
-#include "include/AST.h"
-#include "include/macro.h"
+#include "ast.h"
+#include "macro.h"
 extern bool has_syntax_error;
 void yyerror (YYLTYPE *locp, char const *msg){
     fprintf (stdout,  "Error type B at Line %d: %s\n", locp->first_line, msg);

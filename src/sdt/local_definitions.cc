@@ -30,10 +30,14 @@ std::unique_ptr<hitIR> Dec_c(const node_t& node, const type_t* inh_type) {
     var_table* def_tlb = def_env.def_table;
     switch (def_env.def_scope) {
     case env_t::COMPST_ENV: {
+        // check duplicate define and alloc space
         if (def_tlb->find(var.name)) {
             Error3(node.line, var.name);
-        } else
+        } else {
+            code->append(mem_t::dec(&var));
             def_tlb->insert(var);
+        }
+        // gen init code
         if (node.cld_nr > 1){
             type_t ret_type {};
             code = Exp_c(node.child(2), reg_t::new_unique(), &ret_type);

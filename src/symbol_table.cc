@@ -7,6 +7,12 @@
 using std::string;
 using std::vector;
 using std::stringstream;
+using std::unique_ptr;
+using std::make_unique;
+using fmt::format;
+var_table g_var_tbl {};
+type_table g_type_tbl {};
+func_table g_func_tbl {};
 const var_t* var_table::find(std::string id) const {
     for (auto ele = var_list.cbegin(); ele != var_list.cend(); ++ele)
         if (id == ele->name)
@@ -22,7 +28,7 @@ var_table::var_table() : start_offset(0) {
     undefined = new var_t{
         .name = "not define var",
         .type = nullptr,
-        .ir = { .mem = nullptr, },
+        .addr = nullptr,
     };
 }
 bool var_table::insert_check(var_t item) {
@@ -65,6 +71,14 @@ const type_t* type_table::find(std::string id) const {
     return nullptr;
 }
 void type_table::insert(type_t item) { type_list.push_back(item); }
+const type_t* type_table::insert_ret(type_t item){
+    type_list.push_back(item);
+    return &*(std::prev(type_list.end()));
+}
+unsigned type_table::total_anonymous = 0;
+string type_table::unique_type_id(){
+    return "anonymous struct"+std::to_string(total_anonymous++);
+}
 
 func_table::func_table(): undefined(new func_t {"undefined func"}) {}
 const func_t* func_table::find(std::string id) const {
@@ -83,8 +97,10 @@ bool func_t::param_match(const std::vector<const type_t*> param_type_list) const
     return true;
 }
 
-func_t::func_t(string _name, var_table _param, compst_node* _compst_tree): 
-name(_name), params(_param), compst_tree(_compst_tree) {}
+func_t* func_table::insert_ret(func_t item){
+    func_list.push_back(item);
+    return &*(std::prev(func_list.end()));
+}
 
 std::string func_t::to_string() const{
     stringstream buffer(name);
@@ -95,6 +111,9 @@ std::string func_t::to_string() const{
     return buffer.str();
 }
 const var_t* func_t::find_param(std::string id) const{ return params.find(id); }
+unique_ptr<hitIR> func_t::def_func() const{
+    return make_unique<hitIR>(format("FUCTION {} :",name));
+}
 
 compst_node::compst_node(var_table _vars, compst_node* _parent):
     vars(_vars), parent(_parent) {}

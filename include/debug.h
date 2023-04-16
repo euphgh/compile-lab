@@ -36,8 +36,14 @@
 #define ASSERT_GDB 1
 #define ANSI_FMT(str, fmt) fmt str ANSI_NONE
 #include "macro.h"
+
+#ifdef __cplusplus
 #include <csignal>
 #include <cassert>
+#else 
+#include <signal.h>
+#include <assert.h>
+#endif /* ifdef __cplusplus */
 
 #ifdef C_FMT
 #define _Log(...) IFONE(LOGOUT, printf(__VA_ARGS__));

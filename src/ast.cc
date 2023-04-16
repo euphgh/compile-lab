@@ -87,7 +87,7 @@ void node_t::print_from(int idx, int level){/*{{{*/
     }
 }/*}}}*/
 const node_t& node_t::get_node(int index){/*{{{*/
-    auto [is_empty, node] = node_space.at(index);
+    auto& [is_empty, node] = node_space.at(index);
     Assert(is_empty==false, "try get a empty node {}", index);
     return node;
 }/*}}}*/
