@@ -86,9 +86,12 @@ std::unique_ptr<hitIR> Stmt_c(const node_t& node) {
         break;
     }
     case RETURN: {
-        reg_t* ret_reg = reg_t::new_unique();
+        const reg_t* ret_reg = reg_t::new_unique();
         const type_t* ret_type{};
         code->append(Exp_c(node.child(1), ret_reg, ret_type));
+        extern bool exp_is_addr; // Exp_LB_Exp_RB, Exp_DOT_ID
+        if (exp_is_addr)
+            code->append(load_value(ret_reg));
         if (func_env->ret_type->not_match(ret_type)) {
             Error8(node.line, ret_type->name, func_env->ret_type->name);
         }

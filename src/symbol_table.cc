@@ -118,6 +118,7 @@ func_t::func_t(std::string _name, const type_t* _ret_type, var_table _param,
 bool func_t::param_match(
     const std::vector<const type_t*> param_type_list) const {
     const vector<var_t>& def_vct = params.var_list;
+    if (def_vct.size()!=param_type_list.size()) return false;
     for (unsigned idx; idx < def_vct.size(); idx++) {
         if (def_vct[idx].type->not_match(param_type_list[idx]))
             return false;
@@ -131,10 +132,16 @@ func_t* func_table::insert_ret(func_t item) {
 }
 
 std::string func_t::to_string() const {
-    stringstream buffer(name);
+    stringstream buffer("");
+    buffer << name;
     buffer << "(";
-    for (auto var : params.var_list)
-        buffer << var.type->name << ",";
+    auto param_list = params.var_list;
+    for (auto param = param_list.begin(); param!=param_list.end(); param++){
+        if (param==std::prev(param_list.end()))
+            buffer << param->type->name;
+        else 
+            buffer << param->type->name << ",";
+    }
     buffer << ")";
     return buffer.str();
 }
@@ -143,7 +150,7 @@ const var_t* func_t::find_param(std::string id) const {
 }
 unique_ptr<hitIR> func_t::def_func(){
     auto code = make_unique<hitIR>(format("FUCTION {} :", name));
-    for (auto it = params.var_list.begin(); it!=params.var_list.end(); it++) {
+    for (auto it = params.var_list.rbegin(); it!=params.var_list.rend(); it++) {
         it->regs = reg_t::new_unique();
         code->append(it->regs->param());
     }
