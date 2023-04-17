@@ -149,23 +149,24 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
     case Exp_LB_Exp_RB: {
         // check exp1 is array
         reg_t* array_base = reg_t::new_unique();
-        const type_t* sub_ret;
-        code->append(Exp_c(node.child(0), array_base, sub_ret));
-        if (sub_ret->is_array() == false || exp_is_addr == false)
+        const type_t* base_ret_type;
+        code->append(Exp_c(node.child(0), array_base, base_ret_type));
+        if (base_ret_type->is_array() == false || exp_is_addr == false)
             Error10(node.line, node.child(0).to_string());
 
         // check exp1 is array
+        const type_t* index_ret_type;
         const reg_t* index = reg_t::new_unique();
-        code->append(Exp_c(node.child(2), index, sub_ret));
+        code->append(Exp_c(node.child(2), index, index_ret_type));
         if (exp_is_addr)
             code->append(load_value(index));
-        if (sub_ret->is_int() == false)
+        if (index_ret_type->is_int() == false)
             Error12(node.line, node.child(2).to_string());
 
         const reg_t* offset = reg_t::new_unique();
-        code->append(offset->is_op_of("*", (int)sub_ret->base_size(), index));
+        code->append(offset->is_op_of("*", (int)base_ret_type->base_size(), index));
         code->append(place->is_op_of("+", array_base, offset));
-        self_ret = g_type_tbl.find(sub_ret->base_name());
+        self_ret = g_type_tbl.find(base_ret_type->base_name());
         exp_is_addr = true;
         break;
     }
@@ -185,9 +186,25 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
     }
     case ID_LP_Args_RP: {
         // func def search
-        const func_t* func = g_func_tbl.find(node.child(0).attrib.id_lit);
+        string func_name = node.child(0).attrib.id_lit;
+        const func_t* func = g_func_tbl.find(func_name);
         if (func == nullptr) {
-            Error2(node.line, node.child(0).attrib.id_lit);
+            const var_t* id_var = nullptr;
+            const compst_node* search_env = compst_env;
+            /* check id is local variable */
+            do {
+                id_var = search_env->find(func_name);
+                if (id_var) break;
+                search_env = search_env->up();
+            } while (search_env != nullptr);
+            /* check id is parameter when not local variable found */
+            id_var = id_var ? id_var : func_env->find_param(func_name);
+            /* check id is global when not local and parameter found */
+            id_var = id_var ? id_var : g_var_tbl.find(func_name);
+            if (id_var)
+                Error11(node.line, func_name);
+            else 
+                Error2(node.line, node.child(0).attrib.id_lit);
             func = g_func_tbl.undefined_func();
         }
 

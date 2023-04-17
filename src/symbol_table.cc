@@ -117,6 +117,7 @@ func_t::func_t(std::string _name, const type_t* _ret_type, var_table _param,
       compst_tree(_compst_tree) {}
 bool func_t::param_match(
     const std::vector<const type_t*> param_type_list) const {
+    if (name=="undefined func") return true;
     const vector<var_t>& def_vct = params.var_list;
     if (def_vct.size()!=param_type_list.size()) return false;
     for (unsigned idx; idx < def_vct.size(); idx++) {
