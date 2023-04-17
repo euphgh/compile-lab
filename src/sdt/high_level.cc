@@ -5,7 +5,7 @@
 #include <fmt/core.h>
 using std::make_unique;
 using std::unique_ptr;
-
+bool struct_def;
 unique_ptr<hitIR> Program_c(const node_t& root) { return ExtDefList_c(root.child(0)); }
 
 unique_ptr<hitIR> ExtDefList_c(const node_t& node) {

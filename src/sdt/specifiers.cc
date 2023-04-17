@@ -2,7 +2,7 @@
 #include "sdt.hh"
 #include <string>
 using std::string;
-
+extern bool struct_def;
 const type_t* Specifier_c(const node_t& node) {
     return node.child(0).synt_sym == StructSpecifier
                ? StructSpecifier_c(node.child(0))
@@ -12,9 +12,9 @@ const type_t* Specifier_c(const node_t& node) {
 const type_t* StructSpecifier_c(const node_t& node) {
     auto child1 = node.child(1);
     if (child1.synt_sym == Tag) {
-        auto find_res = g_type_tbl.find(child1.attrib.id_lit);
+        auto find_res = g_type_tbl.find(Tag_c(child1));
         if (find_res == nullptr) {
-            Error17(node.line, child1.attrib.id_lit);
+            Error17(node.line, Tag_c(child1));
             return g_type_tbl.undefined_type();
         }
         return find_res;
@@ -23,7 +23,7 @@ const type_t* StructSpecifier_c(const node_t& node) {
         if (child1.synt_sym==OptTag){
             auto new_tag = g_type_tbl.find(OptTag_c(child1));
             if (new_tag)
-                Error16(node.line, child1.attrib.id_lit);
+                Error16(node.line, OptTag_c(child1));
             return new_tag;
         }
         else opt_id = g_type_tbl.unique_type_id();

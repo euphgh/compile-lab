@@ -110,9 +110,9 @@ class var_table {
     /// only insert and return point
     const var_t* insert_ret(var_t item);
     unsigned offset_of(std::string name) const;
-    inline const var_t* undefined_var() const { return &undefined; }
-    inline unsigned size() { return start_offset; }
-    inline bool empty() const { return offset_list.size() == 1; }
+    const var_t* undefined_var() const ;
+    unsigned size() ;
+    bool empty() const ;
     void log(unsigned indent);
 };
 extern var_table g_var_tbl;
@@ -146,12 +146,12 @@ class type_t {
     type_t(std::string _name = "", unsigned _upper = 0, unsigned _size = 0);
     type_t(const type_t* sub_type, unsigned _unpper); // array
     type_t(std::string id, var_table _sub);
-    inline bool is_int() const    { return name == "int"; }
-    inline bool is_float() const  { return name == "float"; }
-    inline bool is_basic() const  { return is_int() || is_float(); }
-    inline bool not_basic() const { return is_basic() == false; }
-    inline bool is_array() const  { return upper > 0; }
-    inline bool is_struct() const { return sub.empty() == false; }
+    bool is_int() const;
+    bool is_float() const;
+    bool is_basic() const;
+    bool not_basic() const;
+    bool is_array() const;
+    bool is_struct() const;
     unsigned base_size() const;
     std::string base_name() const;
     // TODO: not impliment
@@ -234,7 +234,7 @@ class func_t {
     _(10, "\"{}\" is not a array")                                             \
     _(11, "\"{}\" is not a function")                                          \
     _(12, "\"{}\" is not a integer")                                           \
-    _(13, "Illegal use of \".\" for Exp\"{}\"")                                \
+    _(13, "Illegal use of \".\" for Exp \"{}\"")                                \
     _(14, "Non-existent field \"{}\" in struct \"{}\"")                        \
     _(15, "Redefined or define with inital field \"{}\"")                      \
     _(16, "Duplicated name \"{}\"")                                            \

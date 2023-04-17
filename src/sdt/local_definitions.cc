@@ -2,6 +2,7 @@
 #include "sdt.hh"
 #include <memory>
 #include <fmt/core.h>
+extern bool struct_def;
 std::unique_ptr<hitIR> DefList_c(const node_t& node) {
     std::unique_ptr<hitIR> code = Def_c(node.child(0));
     if (node.cld_nr > 1)

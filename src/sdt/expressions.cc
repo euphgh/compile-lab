@@ -124,25 +124,36 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
     case Exp_DOT_ID: {
         reg_t* struct_base = reg_t::new_unique();
         const type_t* struct_ret;
-        code->append(Exp_c(node.child(0), struct_base, struct_ret));
-        if (struct_ret->is_struct() == false || exp_is_addr == false)
-            Error13(node.line, node.child(0).to_string());
-        reg_t* offset = reg_t::new_unique();
+        reg_t* offset_reg = reg_t::new_unique();
+        unsigned offset;
+        const var_t* field_var;
         string field_name = node.child(2).attrib.id_lit;
-        const var_table& struct_vars = struct_ret->sub;
-        const var_t* field_var = struct_vars.find(field_name);
-        if (field_var == nullptr) {
-            Error14(node.line, field_name, struct_ret->name);
-            break;
+        const var_table* struct_vars;
+        bool is_struct = true;
+
+        /* check Exp is a struct */
+        // raise(SIGTRAP);
+        code->append(Exp_c(node.child(0), struct_base, struct_ret));
+        if (struct_ret->is_struct() == false || exp_is_addr == false){
+            Error13(node.line, node.child(0).to_string());
+            is_struct  = false;
         }
-        code->append(offset->assign((int)struct_vars.offset_of(field_name)));
+
+        /* check id is define in struct id and get offset */
+        struct_vars = &struct_ret->sub;
+        field_var = struct_vars->find(field_name);
+        if (field_var) offset = struct_vars->offset_of(field_name);
+        else {
+            offset = 0;
+            field_var = g_var_tbl.undefined_var();
+            if (is_struct)
+                Error14(node.line, field_name, struct_ret->name);
+        }
+
+        /* calculate addr of variable */
+        code->append(offset_reg->assign((int)offset));
+        code->append(place->is_op_of("+", struct_base, offset_reg));
         self_ret = field_var->type;
-        if (self_ret->is_basic()) {
-            reg_t* addr = reg_t::new_unique();
-            code->append(addr->is_op_of("+", struct_base, offset));
-            code->append(place->load_from(addr));
-        } else
-            code->append(place->is_op_of("+", struct_base, offset));
         exp_is_addr = true;
         break;
     }

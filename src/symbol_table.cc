@@ -53,6 +53,9 @@ unsigned var_table::offset_of(std::string name) const {
             return offset_list[i];
     return ~0;
 };
+const var_t* var_table::undefined_var() const { return &undefined; }
+unsigned var_table::size() { return start_offset; }
+bool var_table::empty() const { return offset_list.empty(); }
 
 void var_table::log(unsigned indent) {
     for (auto var : var_list) {
@@ -79,6 +82,12 @@ bool type_t::not_match(const type_t* other) const {
     return name != other->name && this->name != "undefined type" &&
            other->name != "undefined type";
 }
+bool type_t::is_int() const    { return name == "int"; }
+bool type_t::is_float() const  { return name == "float"; }
+bool type_t::is_basic() const  { return is_int() || is_float(); }
+bool type_t::not_basic() const { return is_basic() == false; }
+bool type_t::is_array() const  { return upper > 0; }
+bool type_t::is_struct() const { return sub.empty() == false; }
 string type_t::base_name() const {
     return upper == 0 ? name : name.substr(0, name.find_last_of('['));
 }
