@@ -1,6 +1,7 @@
 #include "ast.h"
 #include "debug.h"
 #include "sdt.hh"
+#include <csignal>
 #include <memory>
 #include <fmt/core.h>
 using std::make_unique;

@@ -17,7 +17,7 @@ func_table g_func_tbl{};
 unsigned label_t::total = 0;
 unsigned mem_t::total = 0;
 unsigned reg_t::total = 0;
-std::vector<label_t> label_t::label_pool;
+std::vector<label_t> label_t::label_pool = vector<label_t>{};
 const var_t* var_table::find(std::string id) const {
     for (auto ele = var_list.cbegin(); ele != var_list.cend(); ++ele)
         if (id == ele->name)

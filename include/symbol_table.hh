@@ -1,9 +1,10 @@
 #include "ast.h"
+#include <csignal>
+#include <fmt/core.h>
 #include <map>
 #include <memory>
 #include <string>
 #include <vector>
-#include <fmt/core.h>
 struct var_t;
 struct type_t;
 class func_t;
@@ -110,9 +111,9 @@ class var_table {
     /// only insert and return point
     const var_t* insert_ret(var_t item);
     unsigned offset_of(std::string name) const;
-    const var_t* undefined_var() const ;
-    unsigned size() ;
-    bool empty() const ;
+    const var_t* undefined_var() const;
+    unsigned size();
+    bool empty() const;
     void log(unsigned indent);
 };
 extern var_table g_var_tbl;
@@ -213,8 +214,7 @@ class func_t {
     const type_t* ret_type;
     func_t(std::string _name = "",
            const type_t* _ret_type = g_type_tbl.undefined_type(),
-           var_table _param = var_table{},
-           compst_node* _compst_tree = nullptr);
+           var_table _param = var_table{}, compst_node* _compst_tree = nullptr);
     bool param_match(const std::vector<const type_t*> param_type_list) const;
     std::string to_string() const;
     const var_t* find_param(std::string id) const;
@@ -234,7 +234,7 @@ class func_t {
     _(10, "\"{}\" is not a array")                                             \
     _(11, "\"{}\" is not a function")                                          \
     _(12, "\"{}\" is not a integer")                                           \
-    _(13, "Illegal use of \".\" for Exp \"{}\"")                                \
+    _(13, "Illegal use of \".\" for Exp \"{}\"")                               \
     _(14, "Non-existent field \"{}\" in struct \"{}\"")                        \
     _(15, "Redefined or define with inital field \"{}\"")                      \
     _(16, "Duplicated name \"{}\"")                                            \
@@ -243,8 +243,8 @@ class func_t {
 #define __imp_macro_error__(num, fmtstr)                                       \
     template <typename... param>                                               \
     void Error##num(unsigned line, param&&... params) {                        \
-        extern bool has_semantic_error;                                         \
-        has_semantic_error = true;\
+        extern bool has_semantic_error;                                        \
+        has_semantic_error = true;                                             \
         std::string msg =                                                      \
             fmt::vformat(fmtstr, fmt::make_format_args(params...));            \
         fmt::print(stderr, "Error type {} at line {}: {:s}\n", num, line,      \

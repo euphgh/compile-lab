@@ -21,10 +21,12 @@ const type_t* StructSpecifier_c(const node_t& node) {
     } else {
         string opt_id;
         if (child1.synt_sym==OptTag){
-            auto new_tag = g_type_tbl.find(OptTag_c(child1));
-            if (new_tag)
-                Error16(node.line, OptTag_c(child1));
-            return new_tag;
+            opt_id = OptTag_c(child1);
+            auto new_tag = g_type_tbl.find(opt_id);
+            if (new_tag){
+                Error16(node.line, opt_id);
+                return new_tag;
+            }
         }
         else opt_id = g_type_tbl.unique_type_id();
         var_table fields{};

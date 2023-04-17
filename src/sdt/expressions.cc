@@ -134,15 +134,16 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         /* check Exp is a struct */
         // raise(SIGTRAP);
         code->append(Exp_c(node.child(0), struct_base, struct_ret));
-        if (struct_ret->is_struct() == false || exp_is_addr == false){
+        if (struct_ret->is_struct() == false || exp_is_addr == false) {
             Error13(node.line, node.child(0).to_string());
-            is_struct  = false;
+            is_struct = false;
         }
 
         /* check id is define in struct id and get offset */
         struct_vars = &struct_ret->sub;
         field_var = struct_vars->find(field_name);
-        if (field_var) offset = struct_vars->offset_of(field_name);
+        if (field_var)
+            offset = struct_vars->offset_of(field_name);
         else {
             offset = 0;
             field_var = g_var_tbl.undefined_var();
@@ -175,7 +176,8 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
             Error12(node.line, node.child(2).to_string());
 
         const reg_t* offset = reg_t::new_unique();
-        code->append(offset->is_op_of("*", (int)base_ret_type->base_size(), index));
+        code->append(
+            offset->is_op_of("*", (int)base_ret_type->base_size(), index));
         code->append(place->is_op_of("+", array_base, offset));
         self_ret = g_type_tbl.find(base_ret_type->base_name());
         exp_is_addr = true;
@@ -205,7 +207,8 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
             /* check id is local variable */
             do {
                 id_var = search_env->find(func_name);
-                if (id_var) break;
+                if (id_var)
+                    break;
                 search_env = search_env->up();
             } while (search_env != nullptr);
             /* check id is parameter when not local variable found */
@@ -214,7 +217,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
             id_var = id_var ? id_var : g_var_tbl.find(func_name);
             if (id_var)
                 Error11(node.line, func_name);
-            else 
+            else
                 Error2(node.line, node.child(0).attrib.id_lit);
             func = g_func_tbl.undefined_func();
         }
@@ -280,17 +283,20 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         const compst_node* search_env = compst_env;
         do {
             id_var = search_env->find(id_name);
-            if (id_var) goto memory;
+            if (id_var)
+                goto memory;
             search_env = search_env->up();
         } while (search_env != nullptr);
 
         /* check id is parameter when not local variable found */
         id_var = func_env->find_param(id_name);
-        if (id_var) goto parameter;
+        if (id_var)
+            goto parameter;
 
         /* check id is global when not local and parameter found */
         id_var = g_var_tbl.find(id_name);
-        if (id_var) goto memory;
+        if (id_var)
+            goto memory;
 
         /* error when not found in global, parameter, local */
         Error1(node.line, id_name);
@@ -349,8 +355,10 @@ std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true,
         code->append(Exp_c(node.child(2), right, right_type));
         if (exp_is_addr)
             code->append(load_value(right));
-        if (left_type->not_match(right_type) || !left_type->is_int() ||
-            !right_type->is_int()) {
+        bool type_mismatch = left_type->not_match(right_type) ||
+                             !left_type->is_int() || !right_type->is_int();
+        if (type_mismatch && left_type->name != "undefined type" &&
+            right_type->name != "undefined type") {
             Error7(node.line, left_type->name, node.child(1).to_string(),
                    right_type->name);
         }

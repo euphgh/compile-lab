@@ -22,7 +22,9 @@ std::string hitIR::to_string(){
 }
 const label_t* label_t::new_label() {
     label_pool.push_back(label_t {total++});
-    return &*std::prev(label_pool.cend());
+    auto tmp = &*std::prev(label_pool.cend());
+    fmt::print("new label:l{}\n", tmp->id);
+    return tmp;
 }
 unique_ptr<hitIR> label_t::ir_goto() const{
     return make_unique<hitIR>(format("GOTO l{}", id));
@@ -75,10 +77,11 @@ std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, float src2) co
     return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2));
 }
 std::unique_ptr<hitIR> reg_t::if_goto(string relop, const reg_t* src2, const label_t* b_true) const {
+    fmt::print("if goto:l{}\n", b_true->id);
     return make_unique<hitIR>(format("IF r{} {} r{} GOTO l{}", id, relop, src2->id, b_true->id));
 }
 std::unique_ptr<hitIR> reg_t::if_goto(string relop, int src2, const label_t* b_true) const{
-    return make_unique<hitIR>(format("IF r{} {} r{} GOTO l{}", id, relop, src2, b_true->id));
+    return make_unique<hitIR>(format("IF r{} {} #{} GOTO l{}", id, relop, src2,     b_true->id));
 }
 std::unique_ptr<hitIR> reg_t::is_addr_of(const mem_t* src1) const {
     return make_unique<hitIR>(format("r{} := &m{}", id, src1->id));
