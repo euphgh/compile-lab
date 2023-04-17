@@ -53,19 +53,19 @@ std::unique_ptr<hitIR> reg_t::assign(int data) const{
 std::unique_ptr<hitIR> reg_t::assign(float data) const{
     return make_unique<hitIR>(format("r{} := #{}", id, data));
 }
-std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, reg_t* src1, reg_t* src2) const {
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, const reg_t* src1, const reg_t* src2) const {
     return make_unique<hitIR>(format("r{} := r{}{}r{}", id, src1->id, op_str, src2->id));
 }
-std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, int src1, reg_t* src2) const{
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, int src1, const reg_t* src2) const{
     return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2->id));
 }
-std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, reg_t* src2) const{
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, const reg_t* src2) const{
     return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2->id));
 }
-std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, reg_t* src1, int src2) const{
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, const reg_t* src1, int src2) const{
     return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1->id, op_str, src2));
 }
-std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, reg_t* src1, float src2) const{
+std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, const reg_t* src1, float src2) const{
     return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1->id, op_str, src2));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, int src1, int src2) const{
@@ -91,6 +91,9 @@ unique_ptr<hitIR> reg_t::store_to(const reg_t* src1) const{
 }
 unique_ptr<hitIR> reg_t::call(string func_name) const {
     return make_unique<hitIR>(format("r{} := CALL {}", id, func_name));
+}
+unique_ptr<hitIR> reg_t::para() const {
+    return make_unique<hitIR>(format("PARAM r{}", id));
 }
 unique_ptr<hitIR> reg_t::ret() const{
     return make_unique<hitIR>(format("RETURN r{}", id));

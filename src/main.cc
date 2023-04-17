@@ -29,7 +29,7 @@ int main(int argc, char** argv){
     yyrestart(f);
     yyparse();
     if (!has_lexical_error && !has_syntax_error) {
-        print_from_root();
+        // print_from_root();
         auto ir = Program_c(node_t::get_node(node_t::root_idx));
         // if (has_semantic_error==false)
             fmt::print("{}", ir->to_string());

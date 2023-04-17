@@ -40,10 +40,10 @@ std::unique_ptr<hitIR> Dec_c(const node_t& node, const type_t* inh_type) {
         }
         // gen init code
         if (node.cld_nr > 1){
-            const type_t* ret_type {};
-            code->append(Exp_c(node.child(2), reg_t::new_unique(), ret_type));
-            if (inh_type->not_match(ret_type))
-                Error5(node.line, inh_type->name,ret_type->name);
+            const reg_t* right_reg;
+            const reg_t* left_addr = reg_t::new_unique();
+            code->append(left_addr->is_addr_of(var.addr));
+            code->append(Assign_c(left_addr, inh_type, node.child(2), right_reg));
         }
         break;
     }

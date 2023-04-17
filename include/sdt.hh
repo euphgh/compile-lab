@@ -174,9 +174,16 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place, const type_
 
 /** generate code to eval expr and record repond reg
  */
-std::unique_ptr<hitIR> Args_c(const node_t& node, std::vector<const type_t*>& param_list);
+std::unique_ptr<hitIR> Args_c(const node_t& node, 
+        std::vector<const type_t*>& param_list,
+        std::vector<const reg_t* >& regs_list);
 
 /** generate goto code
  */
 std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true, const label_t* b_false);
+
+std::unique_ptr<hitIR> Assign_c(const reg_t* left_addr, const type_t* left_type,
+                                const node_t& right_exp,
+                                const reg_t*& right_value);
+std::unique_ptr<hitIR> load_value(const reg_t*& addr);
 #endif

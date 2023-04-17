@@ -33,15 +33,15 @@ class reg_t {
     std::unique_ptr<hitIR> assign(const reg_t* right) const;
     std::unique_ptr<hitIR> assign(int data) const;
     std::unique_ptr<hitIR> assign(float data) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1,
-                                    reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, const reg_t* src1,
+                                    const reg_t* src2) const;
     std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1,
-                                    reg_t* src2) const;
+                                    const reg_t* src2) const;
     std::unique_ptr<hitIR> is_op_of(std::string op_str, float src1,
-                                    reg_t* src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1,
+                                    const reg_t* src2) const;
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, const reg_t* src1,
                                     int src2) const;
-    std::unique_ptr<hitIR> is_op_of(std::string op_str, reg_t* src1,
+    std::unique_ptr<hitIR> is_op_of(std::string op_str, const reg_t* src1,
                                     float src2) const;
     std::unique_ptr<hitIR> is_op_of(std::string op_str, int src1,
                                     int src2) const;
@@ -55,6 +55,7 @@ class reg_t {
     std::unique_ptr<hitIR> load_from(const reg_t* src1) const;
     std::unique_ptr<hitIR> store_to(const reg_t* src1) const;
     std::unique_ptr<hitIR> call(std::string func_name) const;
+    std::unique_ptr<hitIR> para() const;
     std::unique_ptr<hitIR> ret() const;
 };
 extern reg_t useless_reg;
