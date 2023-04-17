@@ -55,7 +55,8 @@ class reg_t {
     std::unique_ptr<hitIR> load_from(const reg_t* src1) const;
     std::unique_ptr<hitIR> store_to(const reg_t* src1) const;
     std::unique_ptr<hitIR> call(std::string func_name) const;
-    std::unique_ptr<hitIR> para() const;
+    std::unique_ptr<hitIR> param() const;
+    std::unique_ptr<hitIR> arg() const;
     std::unique_ptr<hitIR> ret() const;
 };
 extern reg_t useless_reg;
@@ -90,6 +91,7 @@ struct var_t {
     // else if struct or array mem point to instance
     // else is non
     const mem_t* addr;
+    const reg_t* regs;
 };
 
 class var_table {
@@ -203,20 +205,20 @@ struct compst_node {
 };
 
 class func_t {
-    const var_table params;
 
   public:
+    var_table params;
     std::string name;
     compst_node* compst_tree;
     const type_t* ret_type;
     func_t(std::string _name = "",
            const type_t* _ret_type = g_type_tbl.undefined_type(),
            var_table _param = var_table{},
-           compst_node* _compst_tree = nullptr) {}
+           compst_node* _compst_tree = nullptr);
     bool param_match(const std::vector<const type_t*> param_type_list) const;
     std::string to_string() const;
     const var_t* find_param(std::string id) const;
-    std::unique_ptr<hitIR> def_func() const;
+    std::unique_ptr<hitIR> def_func();
 };
 
 #define E_TABLE(_)                                                             \

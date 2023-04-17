@@ -85,7 +85,7 @@ FunDec: T_ID T_LP VarList T_RP                  {$$ = new_node(FunDec, 4, $1, $2
 VarList: ParamDec T_COMMA VarList               {$$ = new_node(VarList, 3, $1, $2, $3);}
        | ParamDec                               {$$ = new_node(VarList, 1, $1);}
        ;
-ParamDec: Specifier VarDec                      {$$ = new_node(ParamDec, 1, $1);}
+ParamDec: Specifier VarDec                      {$$ = new_node(ParamDec,2, $1, $2);}
         ;
 /* }}} */
 /* Statements {{{*/

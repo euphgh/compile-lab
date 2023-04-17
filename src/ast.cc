@@ -1,6 +1,7 @@
 #include "ast.hh"
 #include <vector>
 #include <cstdarg>
+#include "ast.h"
 #include "debug.h"
 #include "macro.h"
 #include "fmt/core.h"
@@ -94,7 +95,7 @@ const node_t& node_t::get_node(int index){/*{{{*/
 }/*}}}*/
 const node_t& node_t::child(int n) const {/*{{{*/
     Assert(n < cld_nr, 
-            "try get child {} from node {} who has {} child", n, to_string(), cld_nr);
+            "try get child {} from node {} who has {} child", n, id_to_str.at(synt_sym).first, cld_nr);
     Log("child[{}] {} from {} ",n ,id_to_str.at(get_node(cld_idx[n]).synt_sym).first  ,id_to_str.at(synt_sym).first);
     return get_node(cld_idx[n]);
 }/*}}}*/
@@ -143,7 +144,7 @@ int new_node(synt_t synt_sym, int argc, ...) {/*{{{*/
     for (size_t i = 0; i < argc; i++){
         int new_son = va_arg(argv, int);
         if (new_son==-1) continue;
-        node.cld_idx[i] = new_son;
+        node.cld_idx[son_nr] = new_son;
         son_nr++;
     }
     node.cld_nr = son_nr;

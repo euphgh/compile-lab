@@ -1,6 +1,8 @@
 #include "debug.h"
 #include "sdt.hh"
+#include <csignal>
 #include <deque>
+#include <fmt/core.h>
 using std::string;
 const var_t VarDec_c(const node_t& node, const type_t* inh_type) {
     if (node.child_synt(0) == ID) {
@@ -19,7 +21,7 @@ const var_t VarDec_c(const node_t& node, const type_t* inh_type) {
 func_t* FunDec_c(const node_t& node, const type_t* inh_ret_type) {
     string func_name = node.child(0).attrib.id_lit;
     if (g_func_tbl.find(func_name) != nullptr)
-        Error3(node.line, node.attrib.id_lit);
+        Error4(node.line, func_name);
     func_t* func_p;
     if (node.cld_nr == 3) { // no para
         func_p =

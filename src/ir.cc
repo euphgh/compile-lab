@@ -92,9 +92,12 @@ unique_ptr<hitIR> reg_t::store_to(const reg_t* src1) const{
 unique_ptr<hitIR> reg_t::call(string func_name) const {
     return make_unique<hitIR>(format("r{} := CALL {}", id, func_name));
 }
-unique_ptr<hitIR> reg_t::para() const {
+unique_ptr<hitIR> reg_t::param() const {
     return make_unique<hitIR>(format("PARAM r{}", id));
 }
 unique_ptr<hitIR> reg_t::ret() const{
     return make_unique<hitIR>(format("RETURN r{}", id));
+}
+unique_ptr<hitIR> reg_t::arg() const{
+    return make_unique<hitIR>(format("ARG r{}", id));
 }

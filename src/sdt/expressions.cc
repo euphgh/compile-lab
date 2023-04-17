@@ -1,6 +1,7 @@
 #include "ast.h"
 #include "debug.h"
 #include "sdt.hh"
+#include <csignal>
 #include <fmt/color.h>
 #include <fmt/core.h>
 #include <memory>
@@ -43,9 +44,11 @@ static std::unique_ptr<hitIR> triple_reg(string op_str, const node_t& node,
     const type_t *left_type, *right_type;
     const reg_t* right = reg_t::new_unique();
     code->append(Exp_c(node.child(0), left, left_type));
-    if (exp_is_addr) code->append(load_value(left));
+    if (exp_is_addr)
+        code->append(load_value(left));
     code->append(Exp_c(node.child(2), right, right_type));
-    if (exp_is_addr) code->append(load_value(right));
+    if (exp_is_addr)
+        code->append(load_value(right));
     // raise(SIGTRAP);
     if (left_type->not_match(right_type) || left_type->not_basic() ||
         right_type->not_basic()) {
@@ -58,7 +61,7 @@ static std::unique_ptr<hitIR> triple_reg(string op_str, const node_t& node,
     return code;
 }
 
-std::unique_ptr<hitIR> load_value(const reg_t*& addr){
+std::unique_ptr<hitIR> load_value(const reg_t*& addr) {
     const reg_t* old_addr = addr;
     addr = reg_t::new_unique();
     return addr->load_from(old_addr);
@@ -73,7 +76,8 @@ std::unique_ptr<hitIR> Assign_c(const reg_t* left_addr, const type_t* left_type,
     auto code = Exp_c(right_exp, right_value, right_type);
     if (left_type->not_match(right_type))
         Error5(right_exp.line, left_type->name, right_type->name);
-    if (exp_is_addr) code->append(load_value(right_value));
+    if (exp_is_addr)
+        code->append(load_value(right_value));
     // use store instruction translate assign
     code->append(right_value->store_to(left_addr));
     return code;
@@ -91,7 +95,8 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         const reg_t* left_reg = reg_t::new_unique();
         const type_t* left_type;
         code->append(Exp_c(node.child(0), left_reg, left_type));
-        if (exp_is_addr == false) Error6(node.line);
+        if (exp_is_addr == false)
+            Error6(node.line);
 
         // gen assign code
         const reg_t* right_value = nullptr;
@@ -120,7 +125,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         reg_t* struct_base = reg_t::new_unique();
         const type_t* struct_ret;
         code->append(Exp_c(node.child(0), struct_base, struct_ret));
-        if (struct_ret->is_struct() == false || exp_is_addr==false)
+        if (struct_ret->is_struct() == false || exp_is_addr == false)
             Error13(node.line, node.child(0).to_string());
         reg_t* offset = reg_t::new_unique();
         string field_name = node.child(2).attrib.id_lit;
@@ -146,13 +151,14 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         reg_t* array_base = reg_t::new_unique();
         const type_t* sub_ret;
         code->append(Exp_c(node.child(0), array_base, sub_ret));
-        if (sub_ret->is_array() == false || exp_is_addr==false)
+        if (sub_ret->is_array() == false || exp_is_addr == false)
             Error10(node.line, node.child(0).to_string());
 
         // check exp1 is array
         const reg_t* index = reg_t::new_unique();
         code->append(Exp_c(node.child(2), index, sub_ret));
-        if (exp_is_addr) code->append(load_value(index));
+        if (exp_is_addr)
+            code->append(load_value(index));
         if (sub_ret->is_int() == false)
             Error12(node.line, node.child(2).to_string());
 
@@ -190,7 +196,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         vector<const reg_t*> regs_list{};
         code = Args_c(node.child(2), param_type, regs_list);
         for (auto reg : regs_list)
-            code->append(reg->para());
+            code->append(reg->arg());
         code->append(place->call(func->name));
 
         // func mismatch param error
@@ -227,7 +233,8 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
     case MINUS_Exp: {
         const reg_t* tmp1 = reg_t::new_unique();
         code = Exp_c(node.child(1), tmp1, self_ret);
-        if (exp_is_addr) code->append(load_value(tmp1));
+        if (exp_is_addr)
+            code->append(load_value(tmp1));
         code->append(place->is_op_of("-", 0, tmp1));
         exp_is_addr = false;
         break;
@@ -240,20 +247,36 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
     case IS_ID: {
         string id_name = node.child(0).attrib.id_lit;
         const var_t* id_var = nullptr;
+
+        /* check id is local variable */
         const compst_node* search_env = compst_env;
         do {
             id_var = search_env->find(id_name);
+            if (id_var) goto memory;
             search_env = search_env->up();
-        } while (search_env != nullptr && id_var == nullptr);
-        id_var = id_var ? id_var : func_env->find_param(id_name);
-        id_var = id_var ? id_var : g_var_tbl.find(id_name);
-        if (id_var == nullptr) {
-            Error1(node.line, id_name);
-            id_var = g_var_tbl.undefined_var();
-        }
+        } while (search_env != nullptr);
+
+        /* check id is parameter when not local variable found */
+        id_var = func_env->find_param(id_name);
+        if (id_var) goto parameter;
+
+        /* check id is global when not local and parameter found */
+        id_var = g_var_tbl.find(id_name);
+        if (id_var) goto memory;
+
+        /* error when not found in global, parameter, local */
+        Error1(node.line, id_name);
+        id_var = g_var_tbl.undefined_var();
+    memory:
         code->append(place->is_addr_of(id_var->addr));
-        self_ret = id_var->type;
         exp_is_addr = true;
+        goto finish;
+
+    parameter:
+        code->append(place->assign(id_var->regs));
+        exp_is_addr = false;
+    finish:
+        self_ret = id_var->type;
         break;
     }
     case IS_FLOAT:
@@ -275,7 +298,8 @@ std::unique_ptr<hitIR> Args_c(const node_t& node,
     const reg_t* tmp = reg_t::new_unique();
     const type_t* self_ret;
     code->append(Exp_c(node.child(0), tmp, self_ret));
-    if (exp_is_addr) code->append(load_value(tmp));
+    if (exp_is_addr)
+        code->append(load_value(tmp));
     param_list.push_back(self_ret);
     regs_list.push_back(tmp);
     if (node.cld_nr > 1)
@@ -292,9 +316,11 @@ std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true,
         const reg_t* right = reg_t::new_unique();
         const type_t *left_type, *right_type;
         code->append(Exp_c(node.child(0), left, left_type));
-        if (exp_is_addr) code->append(load_value(left));
+        if (exp_is_addr)
+            code->append(load_value(left));
         code->append(Exp_c(node.child(2), right, right_type));
-        if (exp_is_addr) code->append(load_value(right));
+        if (exp_is_addr)
+            code->append(load_value(right));
         if (left_type->not_match(right_type) || !left_type->is_int() ||
             !right_type->is_int()) {
             Error7(node.line, left_type->name, node.child(1).to_string(),
@@ -325,7 +351,8 @@ std::unique_ptr<hitIR> Cond_c(const node_t& node, const label_t* b_true,
         const reg_t* tmp1 = reg_t::new_unique();
         const type_t* ret_type;
         code->append(Exp_c(node, tmp1, ret_type));
-        if (exp_is_addr) code->append(load_value(tmp1));
+        if (exp_is_addr)
+            code->append(load_value(tmp1));
         code->append(tmp1->if_goto("!=", 0, b_true));
         code->append(b_false->ir_mark());
         fmt::print(fmt::fg(fmt::color::yellow), "Cond_c encount default\n");

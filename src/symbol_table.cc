@@ -110,6 +110,11 @@ const func_t* func_table::find(std::string id) const {
     return nullptr;
 }
 void func_table::insert(func_t item) { func_list.push_back(item); }
+
+func_t::func_t(std::string _name, const type_t* _ret_type, var_table _param,
+               compst_node* _compst_tree)
+    : name(_name), ret_type(_ret_type), params(_param),
+      compst_tree(_compst_tree) {}
 bool func_t::param_match(
     const std::vector<const type_t*> param_type_list) const {
     const vector<var_t>& def_vct = params.var_list;
@@ -136,8 +141,13 @@ std::string func_t::to_string() const {
 const var_t* func_t::find_param(std::string id) const {
     return params.find(id);
 }
-unique_ptr<hitIR> func_t::def_func() const {
-    return make_unique<hitIR>(format("FUCTION {} :", name));
+unique_ptr<hitIR> func_t::def_func(){
+    auto code = make_unique<hitIR>(format("FUCTION {} :", name));
+    for (auto it = params.var_list.begin(); it!=params.var_list.end(); it++) {
+        it->regs = reg_t::new_unique();
+        code->append(it->regs->param());
+    }
+    return code;
 }
 
 compst_node::compst_node(var_table _vars, compst_node* _parent)

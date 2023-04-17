@@ -1,4 +1,5 @@
 #include "ast.h"
+#include "ast.hh"
 #include "debug.h"
 #include "sdt.hh"
 #include <memory>
@@ -12,13 +13,27 @@ env_t def_env = {
 };
 
 std::unique_ptr<hitIR> CompSt_c(const node_t& node) {
-    def_env.def_table = &compst_env->vars;
-    def_env.def_scope = env_t::COMPST_ENV;
-    auto code = DefList_c(node.child(1));
-    def_env.def_scope = env_t::NONE_ENV;
-    def_env.def_table = nullptr;
-
-    code->append(StmtList_c(node.child(2)));
+    auto code = std::make_unique<hitIR>();
+    switch (node.child(1).synt_sym) {
+        case DefList:
+            def_env.def_table = &compst_env->vars;
+            def_env.def_scope = env_t::COMPST_ENV;
+            code ->append(DefList_c(node.child(1)));
+            def_env.def_scope = env_t::NONE_ENV;
+            def_env.def_table = nullptr;
+            if (node.child(2).synt_sym==StmtList)
+                code->append(StmtList_c(node.child(2)));
+            break;
+        case StmtList:
+            code->append(StmtList_c(node.child(1)));
+            break;
+        case RC:
+            break;
+        default:
+            Assert(0, "not expect synt_sym {} from CompSt node {}'s child 1",
+                    node.child(1).synt_sym, node.self_idx);
+            break;
+    }
     return code;
 }
 
@@ -78,10 +93,11 @@ std::unique_ptr<hitIR> Stmt_c(const node_t& node) {
             Error8(node.line, ret_type->name, func_env->ret_type->name);
         }
         code->append(ret_reg->ret());
+        break;
     }
     default:
         Assert(0, "not expect synt_sym {} from Stmt node {}'s child 0",
-               node.child(1).synt_sym, node.self_idx);
+            node_t::id_to_str.at(node.child(0).synt_sym).first, node.self_idx);
     }
     return code;
 }

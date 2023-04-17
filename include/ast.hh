@@ -11,9 +11,9 @@ extern "C" {
 class node_t {
     // first: is empty/available
     static std::vector<std::pair<bool, node_t>> node_space;
-    static const std::map<synt_t, std::pair<std::string, bool>> id_to_str ;
 
     public:
+    static const std::map<synt_t, std::pair<std::string, bool>> id_to_str ;
     int par_idx;
     int cld_idx[8];
     int cld_nr;
