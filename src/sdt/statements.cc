@@ -62,8 +62,6 @@ std::unique_ptr<hitIR> Stmt_c(const node_t& node) {
     case IF: {
         auto b_true = label_t::new_label();
         auto b_false = label_t::new_label();
-        fmt::print("if statement:{}\n",b_true->id);
-        fmt::print("if statement:{}\n",b_false->id);
         code->append(Cond_c(node.child(2), b_true, b_false));
         code->append(b_true->ir_mark());
         code->append(Stmt_c(node.child(4)));

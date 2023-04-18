@@ -1,4 +1,5 @@
 #include "symbol_table.hh"
+#include <csignal>
 #include <fmt/core.h>
 #include <iterator>
 #include <memory>
@@ -21,10 +22,8 @@ std::string hitIR::to_string(){
     return buffer.str();
 }
 const label_t* label_t::new_label() {
-    label_pool.push_back(label_t {total++});
-    auto tmp = &*std::prev(label_pool.cend());
-    fmt::print("new label:l{}\n", tmp->id);
-    return tmp;
+    label_pool.insert(label_pool.begin(), new label_t {total++});
+    return label_pool.at(0);
 }
 unique_ptr<hitIR> label_t::ir_goto() const{
     return make_unique<hitIR>(format("GOTO l{}", id));
@@ -77,7 +76,6 @@ std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, float src2) co
     return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2));
 }
 std::unique_ptr<hitIR> reg_t::if_goto(string relop, const reg_t* src2, const label_t* b_true) const {
-    fmt::print("if goto:l{}\n", b_true->id);
     return make_unique<hitIR>(format("IF r{} {} r{} GOTO l{}", id, relop, src2->id, b_true->id));
 }
 std::unique_ptr<hitIR> reg_t::if_goto(string relop, int src2, const label_t* b_true) const{

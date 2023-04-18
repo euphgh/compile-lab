@@ -75,7 +75,7 @@ class mem_t {
 
 class label_t {
     static unsigned total;
-    static std::vector<label_t> label_pool;
+    static std::vector<label_t *> label_pool;
 
   public:
     static const label_t* new_label();
