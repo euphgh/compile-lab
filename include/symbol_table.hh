@@ -101,7 +101,7 @@ class var_table {
     const var_t undefined;
 
   public:
-    std::vector<var_t> var_list;
+    std::vector<var_t*> var_list;
     var_table();
     const var_t* find(std::string id) const;
     /// only push back
@@ -160,7 +160,7 @@ class type_t {
 };
 
 class type_table {
-    std::vector<type_t> type_list;
+    std::vector<type_t*> type_list;
     const type_t undefined;
     static unsigned total_anonymous;
 

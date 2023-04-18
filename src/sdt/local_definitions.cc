@@ -12,10 +12,6 @@ std::unique_ptr<hitIR> DefList_c(const node_t& node) {
 
 std::unique_ptr<hitIR> Def_c(const node_t& node) {
     const type_t* base_type = Specifier_c(node.child(0));
-    if (g_type_tbl.find(base_type->name) == nullptr) {
-        Error17(node.line, base_type->name);
-        base_type = g_type_tbl.undefined_type();
-    }
     return DecList_c(node.child(1), base_type);
 }
 

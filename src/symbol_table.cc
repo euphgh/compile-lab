@@ -19,13 +19,13 @@ unsigned mem_t::total = 0;
 unsigned reg_t::total = 0;
 std::vector<label_t*> label_t::label_pool;
 const var_t* var_table::find(std::string id) const {
-    for (auto ele = var_list.cbegin(); ele != var_list.cend(); ++ele)
+    for (auto ele: var_list)
         if (id == ele->name)
-            return &*ele;
+            return ele;
     return nullptr;
 }
 void var_table::insert(const var_t item) {
-    var_list.push_back(item);
+    var_list.push_back(new var_t(item));
     offset_list.push_back(start_offset);
     start_offset += item.type->size;
 }
@@ -44,12 +44,12 @@ bool var_table::insert_check(var_t item) {
 }
 
 const var_t* var_table::insert_ret(var_t item) {
-    var_list.push_back(item);
-    return &*(std::prev(var_list.end()));
+    var_list.push_back(new var_t(item));
+    return *(std::prev(var_list.end()));
 }
 unsigned var_table::offset_of(std::string name) const {
     for (unsigned i = 0; i <= var_list.size(); i++)
-        if (var_list[i].name == name)
+        if (var_list[i]->name == name)
             return offset_list[i];
     return ~0;
 };
@@ -61,13 +61,13 @@ void var_table::log(unsigned indent) {
     for (auto var : var_list) {
         for (size_t i = 0; i < indent; i++)
             fmt::print("  ");
-        fmt::print("{} {};\n", var.type->name, var.name);
+        fmt::print("{} {};\n", var->type->name, var->name);
     }
 }
 
 type_table::type_table() : undefined(type_t{"undefined type"}) {
-    type_list.push_back(type_t{"int", 0, 4});
-    type_list.push_back(type_t{"float", 0, 4});
+    type_list.push_back(new type_t{"int", 0, 4});
+    type_list.push_back(new type_t{"float", 0, 4});
 }
 const type_t* type_table::undefined_type() const { return &undefined; }
 
@@ -96,15 +96,15 @@ unsigned type_t::base_size() const {
 }
 
 const type_t* type_table::find(std::string id) const {
-    for (auto ele = type_list.cbegin(); ele != type_list.cend(); ++ele)
+    for (auto ele : type_list)
         if (id == ele->name)
-            return &*ele;
+            return ele;
     return nullptr;
 }
-void type_table::insert(type_t item) { type_list.push_back(item); }
+void type_table::insert(type_t item) { type_list.push_back(new type_t(item)); }
 const type_t* type_table::insert_ret(type_t item) {
-    type_list.push_back(item);
-    return &*(std::prev(type_list.end()));
+    insert(item);
+    return *(std::prev(type_list.end()));
 }
 unsigned type_table::total_anonymous = 0;
 string type_table::unique_type_id() {
@@ -127,10 +127,10 @@ func_t::func_t(std::string _name, const type_t* _ret_type, var_table _param,
 bool func_t::param_match(
     const std::vector<const type_t*> param_type_list) const {
     if (name=="undefined func") return true;
-    const vector<var_t>& def_vct = params.var_list;
+    const vector<var_t*>& def_vct = params.var_list;
     if (def_vct.size()!=param_type_list.size()) return false;
     for (unsigned idx; idx < def_vct.size(); idx++) {
-        if (def_vct[idx].type->not_match(param_type_list[idx]))
+        if (def_vct[idx]->type->not_match(param_type_list[idx]))
             return false;
     }
     return true;
@@ -146,11 +146,8 @@ std::string func_t::to_string() const {
     buffer << name;
     buffer << "(";
     auto param_list = params.var_list;
-    for (auto param = param_list.begin(); param!=param_list.end(); param++){
-        if (param==std::prev(param_list.end()))
-            buffer << param->type->name;
-        else 
-            buffer << param->type->name << ",";
+    for (auto param: param_list){
+        buffer << param->type->name << ",";
     }
     buffer << ")";
     return buffer.str();
@@ -161,8 +158,8 @@ const var_t* func_t::find_param(std::string id) const {
 unique_ptr<hitIR> func_t::def_func(){
     auto code = make_unique<hitIR>(format("FUCTION {} :", name));
     for (auto it = params.var_list.rbegin(); it!=params.var_list.rend(); it++) {
-        it->regs = reg_t::new_unique();
-        code->append(it->regs->param());
+        (*it)->regs = reg_t::new_unique();
+        code->append((*it)->regs->param());
     }
     return code;
 }
