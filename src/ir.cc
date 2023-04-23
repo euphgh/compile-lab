@@ -55,25 +55,25 @@ std::unique_ptr<hitIR> reg_t::assign(float data) const{
     return make_unique<hitIR>(format("r{} := #{}", id, data));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, const reg_t* src1, const reg_t* src2) const {
-    return make_unique<hitIR>(format("r{} := r{}{}r{}", id, src1->id, op_str, src2->id));
+    return make_unique<hitIR>(format("r{} := r{} {} r{}", id, src1->id, op_str, src2->id));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, int src1, const reg_t* src2) const{
-    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2->id));
+    return make_unique<hitIR>(format("r{} := #{} {} r{}", id, src1, op_str, src2->id));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, const reg_t* src2) const{
-    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2->id));
+    return make_unique<hitIR>(format("r{} := #{} {} r{}", id, src1, op_str, src2->id));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, const reg_t* src1, int src2) const{
-    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1->id, op_str, src2));
+    return make_unique<hitIR>(format("r{} := #{} {} r{}", id, src1->id, op_str, src2));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, const reg_t* src1, float src2) const{
-    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1->id, op_str, src2));
+    return make_unique<hitIR>(format("r{} := #{} {} r{}", id, src1->id, op_str, src2));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, int src1, int src2) const{
-    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2));
+    return make_unique<hitIR>(format("r{} := #{} {} r{}", id, src1, op_str, src2));
 }
 std::unique_ptr<hitIR> reg_t::is_op_of(string op_str, float src1, float src2) const{
-    return make_unique<hitIR>(format("r{} := #{}{}r{}", id, src1, op_str, src2));
+    return make_unique<hitIR>(format("r{} := #{} {} r{}", id, src1, op_str, src2));
 }
 std::unique_ptr<hitIR> reg_t::if_goto(string relop, const reg_t* src2, const label_t* b_true) const {
     return make_unique<hitIR>(format("IF r{} {} r{} GOTO l{}", id, relop, src2->id, b_true->id));
