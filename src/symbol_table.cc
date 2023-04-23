@@ -111,7 +111,17 @@ string type_table::unique_type_id() {
     return "anonymous struct" + std::to_string(total_anonymous++);
 }
 
-func_table::func_table() : undefined(new func_t{"undefined func"}) {}
+func_table::func_table() : undefined(new func_t{"undefined func"}) {
+    func_list.push_back(func_t {"read", g_type_tbl.find("int")});
+    var_table write_param {};
+    write_param.insert(var_t  {
+            .name = "out",
+            .type = g_type_tbl.find("int"),
+            .addr = nullptr,
+            .regs = nullptr,
+            });
+    func_list.push_back(func_t {"write", g_type_tbl.find("int"), write_param});
+}
 const func_t* func_table::find(std::string id) const {
     for (auto ele = func_list.cbegin(); ele != func_list.cend(); ++ele)
         if (id == ele->name)
@@ -156,7 +166,7 @@ const var_t* func_t::find_param(std::string id) const {
     return params.find(id);
 }
 unique_ptr<hitIR> func_t::def_func(){
-    auto code = make_unique<hitIR>(format("FUCTION {} :", name));
+    auto code = make_unique<hitIR>(format("FUNCTION {} :", name));
     for (auto it = params.var_list.rbegin(); it!=params.var_list.rend(); it++) {
         (*it)->regs = reg_t::new_unique();
         code->append((*it)->regs->param());

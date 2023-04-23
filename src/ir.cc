@@ -102,3 +102,9 @@ unique_ptr<hitIR> reg_t::ret() const{
 unique_ptr<hitIR> reg_t::arg() const{
     return make_unique<hitIR>(format("ARG r{}", id));
 }
+unique_ptr<hitIR> reg_t::write() const{
+    return make_unique<hitIR>(format("WRITE r{}", id));
+}
+unique_ptr<hitIR> reg_t::read() const{
+    return make_unique<hitIR>(format("READ r{}", id));
+}

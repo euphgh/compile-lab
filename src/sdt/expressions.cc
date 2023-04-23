@@ -189,8 +189,12 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
             Error2(node.line, node.child(0).attrib.id_lit);
             func = g_func_tbl.undefined_func();
         }
-        if (func->param_match(vector<const type_t*>{}))
-            code->append(place->call(func->name));
+        if (func->param_match(vector<const type_t*>{})){
+            if (func->name=="read")
+                code->append(place->read());
+            else
+                code->append(place->call(func->name));
+        }
         else
             Error9(node.line, func->to_string(), "");
         self_ret = func->ret_type;
@@ -226,9 +230,13 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         vector<const type_t*> param_type{};
         vector<const reg_t*> regs_list{};
         code = Args_c(node.child(2), param_type, regs_list);
-        for (auto reg : regs_list)
-            code->append(reg->arg());
-        code->append(place->call(func->name));
+        if (func->name=="write")
+            code->append(regs_list[0]->write());
+        else {
+            for (auto reg : regs_list)
+                code->append(reg->arg());
+            code->append(place->call(func->name));
+        }
 
         // func mismatch param error
         if (func->param_match(param_type) == false) {

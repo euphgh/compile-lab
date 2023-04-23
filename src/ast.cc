@@ -9,7 +9,6 @@
 #include <map>
 #include <tuple>
 #include <sstream>
-
 /////////////////////////////////////////////////
 /// impliment for cpp class
 /////////////////////////////////////////////////
@@ -125,12 +124,14 @@ std::string node_t::to_string () const{/*{{{*/
 /////////////////////////////////////////////////
 /// impliment for c api
 /////////////////////////////////////////////////
-int new_leaf(synt_t synt_sym, value_t attrib) {/*{{{*/
+int new_leaf(synt_t synt_sym, value_t attrib, unsigned line) {/*{{{*/
     int idx = node_t::new_space();
     node_t& node = node_t::check_new_node(idx);
     node.cld_nr = 0;
     node.synt_sym = synt_sym;
     node.attrib = attrib;
+    node.line = line;
+    Log("line add is {}",line)
     return idx;
 }/*}}}*/
 int new_node(synt_t synt_sym, int argc, ...) {/*{{{*/
@@ -148,6 +149,7 @@ int new_node(synt_t synt_sym, int argc, ...) {/*{{{*/
         son_nr++;
     }
     node.cld_nr = son_nr;
+    node.line = node_t::get_node(node.cld_idx[0]).line;
     va_end(argv);
     return idx;
 }/*}}}*/

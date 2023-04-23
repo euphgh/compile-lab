@@ -56,6 +56,8 @@ class reg_t {
     std::unique_ptr<hitIR> load_from(const reg_t* src1) const;
     std::unique_ptr<hitIR> store_to(const reg_t* src1) const;
     std::unique_ptr<hitIR> call(std::string func_name) const;
+    std::unique_ptr<hitIR> write() const;
+    std::unique_ptr<hitIR> read() const;
     std::unique_ptr<hitIR> param() const;
     std::unique_ptr<hitIR> arg() const;
     std::unique_ptr<hitIR> ret() const;

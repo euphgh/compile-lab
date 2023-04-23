@@ -53,7 +53,8 @@ syntax: $(YFO)
 syntax-c: $(YFC)
 lexical: $(LFC)
 NUM ?= 1
-ARGS = ../Test/test$(NUM).cmm
+ARGS = ../Test/semantics/test$(NUM).cmm
+# ARGS = ../Test/ir/test$(NUM).cmm
 EXEC_CL = ./$(BINARY) $(ARGS)
 gdb: $(BINARY)
 	gdb -s $(BINARY) --args $(EXEC_CL)

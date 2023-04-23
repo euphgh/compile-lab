@@ -71,7 +71,7 @@ typedef union {
 #ifdef __cplusplus
 extern "C" {
 #endif
-int new_leaf(synt_t synt_sym, value_t attrib);
+int new_leaf(synt_t synt_sym, value_t attrib, unsigned line);
 int new_node(synt_t synt_sym, int cld_nr, ...);
 void set_root(int node_idx);
 void print_from_root();
