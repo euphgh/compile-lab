@@ -49,14 +49,13 @@ static std::unique_ptr<hitIR> triple_reg(string op_str, const node_t& node,
     code->append(Exp_c(node.child(2), right, right_type));
     if (exp_is_addr)
         code->append(load_value(right));
-    // raise(SIGTRAP);
     if (left_type->not_match(right_type) || left_type->not_basic() ||
         right_type->not_basic()) {
         Error7(node.line, left_type->name, op_str, right_type->name);
         self_ret = g_type_tbl.undefined_type();
     } else
         self_ret = left_type;
-    code->append(place->is_op_of("+", left, right));
+    code->append(place->is_op_of(op_str, left, right));
     exp_is_addr = false;
     return code;
 }
@@ -106,19 +105,19 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         break;
     }
     case Exp_PLUS_Exp:
-        code = triple_reg("+", node, place, self_ret);
+        code->append(triple_reg("+", node, place, self_ret));
         break;
     case Exp_MINUS_Exp:
-        code = triple_reg("-", node, place, self_ret);
+        code->append(triple_reg("-", node, place, self_ret));
         break;
     case Exp_STAR_Exp:
-        code = triple_reg("*", node, place, self_ret);
+        code->append(triple_reg("*", node, place, self_ret));
         break;
     case Exp_DIV_Exp:
-        code = triple_reg("/", node, place, self_ret);
+        code->append(triple_reg("/", node, place, self_ret));
         break;
     case LP_Exp_RP:
-        Exp_c(node.child(1), place, self_ret);
+        code->append(Exp_c(node.child(1), place, self_ret));
         // exp_is_addr is inherit
         break;
     case Exp_DOT_ID: {
@@ -132,7 +131,6 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         bool is_struct = true;
 
         /* check Exp is a struct */
-        // raise(SIGTRAP);
         code->append(Exp_c(node.child(0), struct_base, struct_ret));
         if (struct_ret->is_struct() == false || exp_is_addr == false) {
             Error13(node.line, node.child(0).to_string());
@@ -229,7 +227,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         // func param code, call code gen
         vector<const type_t*> param_type{};
         vector<const reg_t*> regs_list{};
-        code = Args_c(node.child(2), param_type, regs_list);
+        code->append(Args_c(node.child(2), param_type, regs_list));
         if (func->name=="write")
             code->append(regs_list[0]->write());
         else {
@@ -237,7 +235,6 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
                 code->append(reg->arg());
             code->append(place->call(func->name));
         }
-
         // func mismatch param error
         if (func->param_match(param_type) == false) {
             using std::accumulate;
@@ -271,7 +268,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
     }
     case MINUS_Exp: {
         const reg_t* tmp1 = reg_t::new_unique();
-        code = Exp_c(node.child(1), tmp1, self_ret);
+        code->append(Exp_c(node.child(1), tmp1, self_ret));
         if (exp_is_addr)
             code->append(load_value(tmp1));
         code->append(place->is_op_of("-", 0, tmp1));
@@ -279,7 +276,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         break;
     }
     case IS_INT:
-        code = place->assign(node.child(0).attrib.cnt_int);
+        code->append(place->assign(node.child(0).attrib.cnt_int));
         self_ret = g_type_tbl.find("int");
         exp_is_addr = false;
         break;
@@ -322,7 +319,7 @@ std::unique_ptr<hitIR> Exp_c(const node_t& node, const reg_t* place,
         break;
     }
     case IS_FLOAT:
-        code = place->assign(node.child(0).attrib.cnt_flt);
+        code->append(place->assign(node.child(0).attrib.cnt_flt));
         self_ret = g_type_tbl.find("float");
         exp_is_addr = false;
         break;

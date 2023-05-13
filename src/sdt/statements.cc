@@ -38,10 +38,10 @@ std::unique_ptr<hitIR> CompSt_c(const node_t& node) {
 }
 
 std::unique_ptr<hitIR> StmtList_c(const node_t& node) {
-    auto stmt_code = Stmt_c(node.child(0));
+    auto code = Stmt_c(node.child(0));
     if (node.cld_nr == 2)
-        stmt_code->append(StmtList_c(node.child(1)));
-    return stmt_code;
+        code->append(StmtList_c(node.child(1)));
+    return code;
 }
 
 std::unique_ptr<hitIR> Stmt_c(const node_t& node) {
@@ -49,7 +49,9 @@ std::unique_ptr<hitIR> Stmt_c(const node_t& node) {
     switch (node.child(0).synt_sym) {
     case Exp: {
         const type_t* ret_type;
-        code->append(Exp_c(node.child(0), reg_t::new_unique(), ret_type));
+        const reg_t* ret_reg = reg_t::new_unique();
+        code->append(ret_reg->assign(0));
+        code->append(Exp_c(node.child(0), ret_reg, ret_type));
         break;
     }
     case CompSt: {

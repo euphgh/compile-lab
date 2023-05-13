@@ -52,8 +52,8 @@ $(YFC): $(YFILE)
 syntax: $(YFO)
 syntax-c: $(YFC)
 lexical: $(LFC)
-NUM ?= 1
-ARGS = ../Test/semantics/test$(NUM).cmm
+NUM ?= 2
+ARGS = ../Test/ir/test$(NUM).cmm
 # ARGS = ../Test/ir/test$(NUM).cmm
 EXEC_CL = ./$(BINARY) $(ARGS)
 gdb: $(BINARY)
